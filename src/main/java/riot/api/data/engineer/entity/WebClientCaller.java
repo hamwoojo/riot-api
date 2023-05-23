@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Builder
 public class WebClientCaller {
-    private static final String PAGE = "page";
+    private static final String page = "page";
 
     private WebClient webclient;
     private WebClientDTO webClientDTO;
@@ -40,6 +40,12 @@ public class WebClientCaller {
         return createHeader(uri, apiKey).retrieve().bodyToMono(List.class).block();
     }
 
+    public List getWebClientToList() {
+        UriBuilder builder = createMapToParam();
+        URI uri = createURI(builder, webClientDTO.getPathVariable());
+        return createHeader(uri).retrieve().bodyToMono(List.class).block();
+    }
+
     private URI createURI(UriBuilder uriBuilder, List<String> pathVariable){
         if(CollectionUtils.isNotEmpty(pathVariable)){
             return uriBuilder.build(pathVariable.toArray(new String[0]));
@@ -60,16 +66,13 @@ public class WebClientCaller {
 
         UriBuilder uriBuilder = getUriBuilder();
 
-        Optional<Map<String,String>> queryParams = Optional.ofNullable(webClientDTO.getQueryParam());
-        Optional<Map<String,String>> paging = Optional.ofNullable(webClientDTO.getPaging());
-
-        if(queryParams.isPresent()){
-            for(Map.Entry<String, String> entry : queryParams.get().entrySet()){
+        if(MapUtils.isNotEmpty(webClientDTO.getQueryParam())){
+            for(Map.Entry<String, String> entry : webClientDTO.getQueryParam().entrySet()){
                 uriBuilder.queryParam(entry.getKey(), entry.getValue());
             }
         }
-        if(paging.isPresent()){
-            uriBuilder.queryParamIfPresent(PAGE, Optional.ofNullable(paging.get().get(PAGE))).build();
+        if(MapUtils.isNotEmpty(webClientDTO.getPaging())){
+            uriBuilder.queryParamIfPresent(page, Optional.ofNullable(webClientDTO.getQueryParam().get(page))).build();
         }
         return uriBuilder;
     }

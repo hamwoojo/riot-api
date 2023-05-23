@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.apiresult.ApiResult;
 import riot.api.data.engineer.dto.WebClientDTO;
@@ -43,83 +42,8 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
     private final WebClient webClient;
 
     @Override
-    public ResponseEntity<ApiResult> createUserInfoDetailTasks(String method){
-        log.info("===== createUserInfoDetailTasks Start =====");
-        List<ApiKey> apiKeyList = apiKeyService.findList();
-        List<Callable<Integer>> tasks = new ArrayList<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(apiKeyList.size());
-
-        try{
-            for(ApiKey apiKey : apiKeyList){
-                Callable<Integer> task = () -> {
-                    userInfoDetailApiCall(apiKey, method);
-                    return 1;
-                };
-                tasks.add(task);
-            }
-            executorService.invokeAll(tasks);
-            executorService.shutdown();
-        }
-        catch (Exception e){
-            executorService.shutdownNow();
-            log.error(e.getMessage());
-            log.info("===== createUserInfoDetailTasks End =====");
-            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        log.info("===== createUserInfoDetailTasks End =====");
-        return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
-    }
-
-    /**
-     * @param apiKey ApiKey Entity
-     * @param apiName ApiInfo apiName(method명)
-     */
-    @Override
-    public void userInfoDetailApiCall(ApiKey apiKey, String apiName) {
-        try{
-            List<UserInfo> userInfoList = userInfoService.findUserInfoListUpdateYnIsN(apiKey.getApiKeyId(), "N");
-            ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
-
-            for (UserInfo userInfo : userInfoList) {
-                List<String> pathVariableList = new ArrayList<>();
-                pathVariableList.add(userInfo.getSummonerId());
-                /*** Api 호출 세팅**/
-                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,apiInfo);
-                /*** API 호출 **/
-                String response = webClientCaller.getWebClientToString(apiKey);
-                /*** UserInfoDetail Save ***/
-                userInfoDetailSave(jsonToEntity(response, apiKey.getApiKeyId()));
-                /*** userInfo Update ***/
-                userInfo.setUpdateYn("Y");
-                userInfoService.save(userInfo);
-
-                Thread.sleep(1200);
-
-            }
-        }catch (InterruptedException ie){
-            log.error(" === ERROR === ");
-            log.error(ie.getMessage());
-            Thread.currentThread().interrupt();
-        }
-        catch (Exception e){
-            log.error(" === ERROR === ");
-            log.error(e.getMessage());
-        }
-    }
-
-    @Override
-    public List<UserInfoDetail> findUserInfoDetailList() {
-        return userInfoDetailRepository.findAll();
-    }
-
-    @Override
-    public List<UserInfoDetail> findUserInfoDetailListByApiKey(Long apiKey) {
-        return userInfoDetailQueryRepository.findListByApiKeyId(apiKey);
-    }
-
-    @Override
     public UserInfoDetail userInfoDetailSave(UserInfoDetail userInfoDetail) {
-        return userInfoDetailRepository.save(userInfoDetail);
+            return userInfoDetailRepository.save(userInfoDetail);
     }
 
     @Override
@@ -138,30 +62,86 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
         }
     }
 
-    private WebClientCaller buildWebClientCaller(List<String> pathVariableList, ApiInfo apiInfo){
 
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariableList)
-                .build();
+    /**
+     * @param apiKey ApiKey Entity
+     * @param apiName ApiInfo apiName(method명)
+     */
+    @Override
+    public void userInfoDetailApiRequest(ApiKey apiKey, String apiName) {
+        try{
+            List<UserInfo> userInfoList = userInfoService.getUserInfoList(apiKey.getApiKeyId(), "N");
+            ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
+            for (UserInfo userInfo : userInfoList) {
+                List<String> pathVariable = new ArrayList<>();
+                pathVariable.add(userInfo.getSummonerId());
+                WebClientDTO webClientDTO = WebClientDTO.builder()
+                        .scheme(apiInfo.getApiScheme())
+                        .host(apiInfo.getApiHost())
+                        .path(apiInfo.getApiUrl())
+                        .pathVariable(pathVariable).build();
 
-        return WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
+                WebClientCaller webClientCaller = WebClientCaller.builder()
+                        .webclient(webClient)
+                        .webClientDTO(webClientDTO)
+                        .build();
+
+                String response = webClientCaller.getWebClientToString(apiKey);
+
+                userInfoDetailSave(jsonToEntity(response, apiKey.getApiKeyId()));
+                /*
+                 * UserInfoDetail Save가 됬을 경우
+                 * userInfo의 setUpdateYn = Default 값이 N을 Y로 변경
+                 */
+                userInfo.setUpdateYn("Y");
+                userInfoService.save(userInfo);
+            /*
+                RiotApi 1분 호출 limit을 맞추기 위한 Thread.sleep
+             */try{
+                    Thread.sleep(1200);
+                }
+                catch (InterruptedException e){
+                    Thread.currentThread().interrupt();
+                    log.info("Exception : {}", e.getMessage());
+                }
+            }
+        }catch (Exception e){
+            log.error(" === ERROR === ");
+            log.error(e.getMessage());
+        }
+    }
+    @Override
+    public ResponseEntity<ApiResult> createThread(String method){
+        List<ApiKey> apiKeyList = apiKeyService.findList();
+        List<Callable<Integer>> tasks = new ArrayList<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(apiKeyList.size());
+
+        try{
+            for(ApiKey apiKey : apiKeyList){
+                Callable<Integer> task = () -> {
+                    userInfoDetailApiRequest(apiKey, method);
+                    return 1;
+                };
+                tasks.add(task);
+            }
+            executorService.invokeAll(tasks);
+            executorService.shutdown();
+        }
+        catch (Exception e){
+            executorService.shutdownNow();
+            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
+    }
+
+
+    @Override
+    public List<UserInfoDetail> userInfoDeatilList() {
+        return userInfoDetailRepository.findAll();
     }
 
     @Override
-    @Transactional
-    public ApiResult deleteAll() {
-        try{
-            userInfoDetailRepository.deleteAll();
-            return new ApiResult(200,"success",null);
-        }catch (Exception e){
-            return new ApiResult(500,e.getMessage(),null);
-        }
-
+    public List<UserInfoDetail> userInfoDeatilList(Long apiKey) {
+        return userInfoDetailQueryRepository.findListByApiKeyId(apiKey);
     }
 }
