@@ -1,0 +1,265 @@
+{
+	"info": {
+		"_postman_id": "da6b538c-8d2c-4822-945a-e353a89759ff",
+		"name": "Riot_Api_0.1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "26132950",
+		"_collection_link": "https://connection-nifi.postman.co/workspace/SDT-Nifi~7a4ca248-cc98-4e90-b6b8-05aee8645582/collection/26132950-da6b538c-8d2c-4822-945a-e353a89759ff?action=share&creator=26132950&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "ddragon",
+			"item": [
+				{
+					"name": "original",
+					"item": [
+						{
+							"name": "data/ko_KR/runesReforged.json",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "https://ddragon.leagueoflegends.com/cdn/${{version}}/data/ko_KR/runesReforged.json"
+							},
+							"response": []
+						},
+						{
+							"name": "data/ko_KR/item.json",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "http://ddragon.leagueoflegends.com/cdn/${{version}}/data/ko_KR/item.json"
+							},
+							"response": []
+						},
+						{
+							"name": "data/ko_KR/summoner.json",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "https://ddragon.leagueoflegends.com/cdn/${{version}}/data/ko_KR/summoner.json"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "ddragon/runes",
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": {
+								"value": "RGAPI-51fbbbc3-bacf-4f59-afb0-6343b5a3f354",
+								"in": "header",
+								"key": "X-Riot-Token"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/runes"
+					},
+					"response": []
+				},
+				{
+					"name": "ddragon/spells",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/spells"
+					},
+					"response": []
+				},
+				{
+					"name": "ddragon/champions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/champions"
+					},
+					"response": []
+				},
+				{
+					"name": "ddragon/items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/items"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "userinfo",
+			"item": [
+				{
+					"name": "userinfo/user/entries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/userinfo/user/entries"
+					},
+					"response": []
+				},
+				{
+					"name": "userinfo/user/entries",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{ip}}:20000/userinfo/user/entries",
+							"protocol": "http",
+							"host": [
+								"{{ip}}"
+							],
+							"port": "20000",
+							"path": [
+								"userinfo",
+								"user",
+								"entries"
+							],
+							"query": [
+								{
+									"key": "updateYn",
+									"value": "Y",
+									"description": "(Y/N)",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "userinfo/detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/userinfo/detail"
+					},
+					"response": []
+				},
+				{
+					"name": "userinfo/detail",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://{{ip}}:20000/userinfo/detail"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "match",
+			"item": [
+				{
+					"name": "match/list",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"startTime\" : \"2023-06-08\",\n    \"endTime\" : \"2023-06-11\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://{{ip}}:20000/match/list"
+					},
+					"response": []
+				},
+				{
+					"name": "match/list",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"startTime\" : \"2023-05-26\",\n    \"endTime\" : \"2023-05-26\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ip}}:20000/match/list?collectCompleteYn=false",
+							"protocol": "http",
+							"host": [
+								"{{ip}}"
+							],
+							"port": "20000",
+							"path": [
+								"match",
+								"list"
+							],
+							"query": [
+								{
+									"key": "collectCompleteYn",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "match/detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/match/detail"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "version",
+			"item": [
+				{
+					"name": "ddragon/version",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/version"
+					},
+					"response": []
+				},
+				{
+					"name": "ddragon/version/current",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var response = pm.response.json();\r",
+									"var version = response.data.version;\r",
+									"postman.setGlobalVariable(\"version\", version);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://{{ip}}:20000/ddragon/version/current"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
