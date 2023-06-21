@@ -17,12 +17,16 @@ You can obtain this key from the official website.
 Additionally, since there is a rate limit, having multiple API Keys is advantageous.
 
 By making a call to the /ddragon/version API, you can retrieve or update the version information.
-After obtaining the version information, 
+After obtaining the version information,
 you can make API calls to retrieve item information, spell information, champion information, and rune information to collect the respective data.
 
 To retrieve match information, you need to follow the following procedure.
+
 1.Call the /userinfo/user/entries API to collect user information.
+
 2.Call the /userinfo/detail API to collect detailed user information.
+
 3.Call the /match/list API to collect the match lists.
+
 4.Call the /match/detail API to collect detailed information for each match.
 
