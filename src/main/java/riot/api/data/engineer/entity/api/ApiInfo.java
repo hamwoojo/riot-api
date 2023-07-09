@@ -2,6 +2,7 @@ package riot.api.data.engineer.entity.api;
 
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import riot.api.data.engineer.entity.KafkaInfo;
 
 import javax.persistence.*;
@@ -9,7 +10,10 @@ import java.util.List;
 
 @Getter
 @Entity(name = "api_info")
+@NoArgsConstructor
 public class ApiInfo {
+
+
 
     @Id
     @Column(name = "api_info_id")
@@ -48,4 +52,13 @@ public class ApiInfo {
 
     @OneToMany(fetch = FetchType.EAGER, cascade={CascadeType.ALL}, mappedBy = "apiInfo", orphanRemoval=true)
     private List<ApiParams> apiParams;
+
+    public ApiInfo(Long apiInfoId, String apiName, String apiUrl, String apiScheme, String apiHost) {
+        this.apiInfoId = apiInfoId;
+        this.apiName = apiName;
+        this.apiUrl = apiUrl;
+        this.apiScheme = apiScheme;
+        this.apiHost = apiHost;
+    }
+
 }
