@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,12 @@ public class UtilManager {
         Gson gson = new Gson();
         return gson.fromJson(response,JsonArray.class);
     }
+
+    public static String collectionToJsonString(Collection<?> collection){
+        Gson gson = new Gson();
+        return gson.toJson(collection);
+    }
+
     public String getStringConcat(String a, String b){
         return new StringBuilder().append(a).append(b).toString();
     }

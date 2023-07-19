@@ -21,5 +21,20 @@ public class KafkaInfo {
     @Column(name = "api_info_id")
     Long apiInfoId;
 
+    public enum TopicName{
+        MATCHS("matchs"),
+        RUNES("runes"),
+        CHAMPIONS("champions"),
+        ITEMS("items"),
+        SPELLS("spells");
+        String kafkaTopicName;
+        TopicName(String kafkaTopicName) {
+            this.kafkaTopicName = kafkaTopicName;
+        }
+        public String getKafkaTopicName() {
+            return kafkaTopicName;
+        }
+    }
+
 
 }
