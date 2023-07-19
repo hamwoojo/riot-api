@@ -8,13 +8,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class UtilManager {
 
-    public JsonObject StringToJsonObject(String response){
+    public static JsonObject StringToJsonObject(String response){
         Gson gson = new Gson();
         return gson.fromJson(response,JsonObject.class);
+    }
+
+    public static String collectionToJsonString(List<?> datalist) {
+        Gson gson = new Gson();
+        return gson.toJson(datalist);
     }
 
     public JsonArray StringToJsonArray(String response){
