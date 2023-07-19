@@ -11,7 +11,6 @@ public class ExecutorConfig {
 
     @Bean
     public ExecutorService executorService() {
-        // 스레드 풀의 크기를 10으로 설정
         return Executors.newFixedThreadPool(10);
     }
 }
