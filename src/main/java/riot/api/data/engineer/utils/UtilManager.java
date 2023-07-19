@@ -19,16 +19,10 @@ public class UtilManager {
         return gson.fromJson(response,JsonObject.class);
     }
 
-    public static String collectionToJsonString(List<?> datalist) {
-        Gson gson = new Gson();
-        return gson.toJson(datalist);
-    }
-
     public JsonArray StringToJsonArray(String response){
         Gson gson = new Gson();
         return gson.fromJson(response,JsonArray.class);
     }
-
     public static String collectionToJsonString(Collection<?> collection){
         Gson gson = new Gson();
         return gson.toJson(collection);
