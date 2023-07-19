@@ -32,27 +32,20 @@ public class ChampionsController {
 
     @GetMapping("")
     public ResponseEntity<ApiResult> getChampions() {
-
-
         try {
-            /** api 정보 조회 **/
             ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
-            /** 버전 조회 **/
             Version version = versionService.findOneByCurrentVersion();
-            /** api 정보로 kafka 정보 조회 **/
-            KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
-            /** API pathVariable 세팅 **/
             List<String> pathVariable = championsService.setPathVariableVersion(version);
-            /** API 호출 **/
+
             String response = championsService.apiCall(webClient, apiInfo, pathVariable);
-            /** String to POJO **/
             Champions champions = championsService.setChampions(response);
-            /** 카프카 메세지 전송 **/
+
+            KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
             List<Data> dataList = championsService.sendKafkaMessage(kafkaInfo, champions);
 
-            return new ResponseEntity<>(new ApiResult(200, "success", dataList), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResult(ApiResult.ApiStatus.OK.getStatusCode(), ApiResult.ApiStatus.OK.getStatus(), dataList), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResult(ApiResult.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(),ApiResult.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

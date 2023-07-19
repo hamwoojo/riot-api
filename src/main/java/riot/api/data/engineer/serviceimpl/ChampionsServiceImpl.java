@@ -19,35 +19,35 @@ import riot.api.data.engineer.utils.UtilManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ChampionsServiceImpl implements ChampionsService {
+    private static final String JSON_OBJECT_DATA = "data";
     private final MyProducer myProducer;
 
     @Override
     public Champions setChampions(String response) {
-        JsonObject jsonObject = new UtilManager().StringToJsonObject(response);
+        JsonObject responseJsonObject = UtilManager.StringToJsonObject(response);
+        Champions champions = new Champions(responseJsonObject);
 
-        Champions champions = new Champions();
-        Gson gson = new Gson();
-
-        champions.setVersion(String.valueOf(jsonObject.get("version")));
-        champions.setType(String.valueOf(jsonObject.get("type")));
-        champions.setFormat(String.valueOf(jsonObject.get("format")));
-        JsonObject championData = jsonObject.getAsJsonObject("data");
-
+        JsonObject championData = responseJsonObject.getAsJsonObject(JSON_OBJECT_DATA);
         List<Data> dataList = new ArrayList<>();
+        dataList = setChampionsDataList(dataList,championData);
+        champions.setDataList(dataList);
+        return champions;
+    }
 
-        championData.keySet().forEach(key -> {
+    private List<Data> setChampionsDataList(List<Data> dataList, JsonObject championData) {
+        Gson gson = new Gson();
+        championData.keySet().forEach(key ->{
             String championName = key;
-            JsonObject jsonObject2 = championData.getAsJsonObject(championName);
-            Data data = gson.fromJson(jsonObject2, Data.class);
+            JsonObject championJsonObject = championData.getAsJsonObject(championName);
+            Data data = gson.fromJson(championJsonObject,Data.class);
             dataList.add(data);
         });
-        champions.setDataList(dataList);
-
-        return champions;
+        return dataList;
     }
 
     @Override
@@ -72,22 +72,24 @@ public class ChampionsServiceImpl implements ChampionsService {
     public List<String> setPathVariableVersion(Version version) {
         List<String> pathVariable = new ArrayList<>();
         pathVariable.add(version.getVersion());
-        return  pathVariable;
+        return pathVariable;
     }
 
     @Override
     public List<Data> sendKafkaMessage(KafkaInfo kafkaInfo, Champions champions) {
         List<Data> datalist = champions.getDataList();
-        Gson gson = new Gson();
-
-        for (Data data : datalist) {
-            data.setVersion(champions.getVersion().replaceAll("\"", ""));
-            String json = gson.toJson(data);
-            myProducer.sendMessage(kafkaInfo, json);
-        }
-
+        datalist = setChampionVersion(datalist, champions);
+        String jsonData = UtilManager.collectionToJsonString(datalist);
+        myProducer.sendMessage(kafkaInfo, jsonData);
         return datalist;
     }
 
+    private List<Data> setChampionVersion(List<Data> dataList, Champions champions) {
+        return dataList.stream().map(data -> {
+                    data.setVersion(champions.getVersion().replaceAll("\"", ""));
+                    return data;
+                })
+                .collect(Collectors.toList());
+    }
 
 }
