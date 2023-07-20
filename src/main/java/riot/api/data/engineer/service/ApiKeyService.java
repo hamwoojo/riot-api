@@ -1,6 +1,6 @@
 package riot.api.data.engineer.service;
 
-import riot.api.data.engineer.entity.api.ApiKey;
+import riot.api.data.engineer.dto.api.ApiKey;
 
 import java.util.List;
 

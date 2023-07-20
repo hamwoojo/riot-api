@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.matchdetail;
+package riot.api.data.engineer.dto.matchdetail;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;

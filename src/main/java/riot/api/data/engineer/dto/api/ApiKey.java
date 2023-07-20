@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.api;
+package riot.api.data.engineer.dto.api;
 
 import lombok.Getter;
 import javax.persistence.*;

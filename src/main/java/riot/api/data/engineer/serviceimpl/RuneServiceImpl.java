@@ -12,9 +12,9 @@ import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.entity.WebClientCaller;
-import riot.api.data.engineer.entity.api.ApiInfo;
-import riot.api.data.engineer.entity.runes.Rune;
-import riot.api.data.engineer.entity.runes.RuneList;
+import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.dto.runes.Rune;
+import riot.api.data.engineer.dto.runes.RuneList;
 import riot.api.data.engineer.service.RuneService;
 import riot.api.data.engineer.utils.UtilManager;
 

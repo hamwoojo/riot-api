@@ -1,14 +1,14 @@
-package riot.api.data.engineer.entity.spells;
+package riot.api.data.engineer.dto.items;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
-@Setter
 @Getter
-public class Spells {
+@Setter
+public class Items {
     String type;
     String version;
-    List<Spell> spellList;
+    List<Item> itemList;
 }

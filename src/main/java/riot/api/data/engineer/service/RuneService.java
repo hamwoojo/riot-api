@@ -3,9 +3,9 @@ package riot.api.data.engineer.service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.api.ApiInfo;
-import riot.api.data.engineer.entity.runes.Rune;
-import riot.api.data.engineer.entity.runes.RuneList;
+import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.dto.runes.Rune;
+import riot.api.data.engineer.dto.runes.RuneList;
 
 import java.util.List;
 

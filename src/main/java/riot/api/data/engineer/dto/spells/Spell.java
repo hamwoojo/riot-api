@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.spells;
+package riot.api.data.engineer.dto.spells;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;

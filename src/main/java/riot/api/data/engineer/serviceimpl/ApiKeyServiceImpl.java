@@ -1,7 +1,7 @@
 package riot.api.data.engineer.serviceimpl;
 
 import org.springframework.stereotype.Service;
-import riot.api.data.engineer.entity.api.ApiKey;
+import riot.api.data.engineer.dto.api.ApiKey;
 import riot.api.data.engineer.repository.ApiKeyQueryRepository;
 import riot.api.data.engineer.service.ApiKeyService;
 

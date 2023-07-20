@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.items;
+package riot.api.data.engineer.dto.items;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
