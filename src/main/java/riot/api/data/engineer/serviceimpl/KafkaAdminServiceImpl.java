@@ -14,7 +14,6 @@ public class KafkaAdminServiceImpl implements KafkaAdminService {
         this.kafkaAdmin = kafkaAdmin;
     }
 
-    // 토픽 생성
     @Override
     public void createTopic(String topicName, int partitions, short replicationFactor) {
         NewTopic newTopic = new NewTopic(topicName, partitions, replicationFactor);
