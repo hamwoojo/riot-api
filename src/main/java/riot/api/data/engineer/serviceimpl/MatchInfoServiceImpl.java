@@ -49,6 +49,7 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     private final ApiKeyService apiKeyService;
     private final KafkaInfoService kafkaInfoService;
     private final MyProducer myProducer;
+    private final ExecutorService executorService;
     private final ApiParamsService apiParamsService;
     private final MatchInfoQueryRepository matchInfoQueryRepository;
     private final WebClient webClient;
@@ -92,11 +93,14 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                 for (MatchInfo matchInfo : matchInfoList) {
                     matchInfoRepository.save(matchInfo);
                 }
+
                 Thread.sleep(1200);
             }
         } catch (Exception e) {
-            log.error(" === ERROR === ");
-            log.error(e.getMessage());
+            log.info(" === ERROR === ");
+            log.info(e.getMessage());
+        } finally {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -115,12 +119,11 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             }
             executorService.invokeAll(tasks);
             executorService.shutdown();
-            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
-        }
-        catch (Exception e) {
+            return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
+        } catch (InterruptedException e) {
             log.info(e.getMessage());
-            executorService.shutdownNow();
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            executorService.shutdown();
+            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -132,10 +135,10 @@ public class MatchInfoServiceImpl implements MatchInfoService {
 
     @Override
     public ResponseEntity<ApiResult> apiCallBatch(ApiInfo apiInfo, List<ApiKey> apiKeyList) {
-        int apiKeyCount = apiKeyList.size();
-        ExecutorService executorService = Executors.newFixedThreadPool(apiKeyCount);
 
         try {
+            int apiKeyCount = apiKeyList.size();
+            ExecutorService executorService = Executors.newFixedThreadPool(apiKeyCount);
             List<MatchInfo> matchInfoList = matchInfoQueryRepository.findMatchInfoByCollectCompleteYn();
 
             List<List<MatchInfo>> partionMatchInfoList = partitionList(matchInfoList, apiKeyCount);
@@ -153,11 +156,11 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             }
             executorService.invokeAll(tasks);
             executorService.shutdown();
-            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
+            return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
         } catch (Exception e) {
             executorService.shutdownNow();
             log.error(e.getMessage());
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -191,7 +194,11 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                     matchInfo.setCollectCompleteYn(true);
                     matchInfoSave(matchInfo);
                 }
-                Thread.sleep(1200);
+                try {
+                    Thread.sleep(1200);
+                } catch (InterruptedException e) {
+
+                }
             } catch (Exception e) {
                 log.info("=== ERROR ===");
                 log.info(" ApiKey : " + matchInfo.getApiKeyId());

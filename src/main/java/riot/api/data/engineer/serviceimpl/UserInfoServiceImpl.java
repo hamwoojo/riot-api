@@ -60,13 +60,16 @@ public class UserInfoServiceImpl implements UserInfoService {
         }
         catch (Exception e){
             executorService.shutdownNow();
-            return new ResponseEntity<>(new ApiResult(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResult apiResult = new ApiResult(500,e.getMessage(),null);
+            return new ResponseEntity<>(apiResult, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        return new ResponseEntity<>(new ApiResult(200,"success",null),HttpStatus.OK);
+        ApiResult apiResult = new ApiResult(200,"success",null);
+        return new ResponseEntity<>(apiResult,HttpStatus.OK);
     }
 
-    public void apiCallRepeat(ApiInfo apiInfo, ApiKey apiKey, int page,int batchSize){
+    @Transactional
+    protected void apiCallRepeat(ApiInfo apiInfo, ApiKey apiKey, int page,int batchSize){
         Gson gson = new Gson();
         int pageSum = page;
         try{
@@ -99,7 +102,11 @@ public class UserInfoServiceImpl implements UserInfoService {
                     }
                     pageSum += batchSize;
                 }
-                Thread.sleep(1200);
+                try {
+                    Thread.sleep(1200);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         catch (Exception e){
