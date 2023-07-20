@@ -1,4 +1,4 @@
-package riot.api.data.engineer.apiresult;
+package riot.api.data.engineer.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 @Getter
 @AllArgsConstructor
-public class ApiResult {
+public class ApiResultDTO {
 
     int statusCode;
     String message;

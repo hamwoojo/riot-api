@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.UserInfo;
 import riot.api.data.engineer.entity.UserInfoDetail;
@@ -43,7 +43,7 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
     private final WebClient webClient;
 
     @Override
-    public ResponseEntity<ApiResult> createUserInfoDetailTasks(String method){
+    public ResponseEntity<ApiResultDTO> createUserInfoDetailTasks(String method){
         log.info("===== createUserInfoDetailTasks Start =====");
         List<ApiKey> apiKeyList = apiKeyService.findList();
         List<Callable<Integer>> tasks = new ArrayList<>();
@@ -64,10 +64,10 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
             executorService.shutdownNow();
             log.error(e.getMessage());
             log.info("===== createUserInfoDetailTasks End =====");
-            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         log.info("===== createUserInfoDetailTasks End =====");
-        return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
+        return new ResponseEntity(new ApiResultDTO(200, "success", null), HttpStatus.OK);
     }
 
     /**
@@ -155,12 +155,12 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
 
     @Override
     @Transactional
-    public ApiResult deleteAll() {
+    public ApiResultDTO deleteAll() {
         try{
             userInfoDetailRepository.deleteAll();
-            return new ApiResult(200,"success",null);
+            return new ApiResultDTO(200,"success",null);
         }catch (Exception e){
-            return new ApiResult(500,e.getMessage(),null);
+            return new ApiResultDTO(500,e.getMessage(),null);
         }
 
     }

@@ -1,7 +1,7 @@
 package riot.api.data.engineer.service;
 
 import org.springframework.http.ResponseEntity;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.UserInfoDetail;
 import riot.api.data.engineer.dto.api.ApiKey;
 
@@ -14,7 +14,7 @@ public interface UserInfoDetailService {
 
     void userInfoDetailApiCall(ApiKey apiKey, String apiName);
 
-    ResponseEntity<ApiResult> createUserInfoDetailTasks(String method);
+    ResponseEntity<ApiResultDTO> createUserInfoDetailTasks(String method);
 
     UserInfoDetail jsonToEntity(String response, Long apiKeyId);
 
@@ -22,7 +22,7 @@ public interface UserInfoDetailService {
 
     List<UserInfoDetail> findUserInfoDetailListByApiKey(Long apiKey);
 
-    ApiResult deleteAll();
+    ApiResultDTO deleteAll();
 
 
 }

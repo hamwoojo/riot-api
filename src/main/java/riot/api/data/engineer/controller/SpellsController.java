@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.dto.api.ApiInfo;
@@ -34,7 +34,7 @@ public class SpellsController {
     private final WebClient webClient;
 
     @GetMapping("")
-    public ResponseEntity<ApiResult> getSpells() {
+    public ResponseEntity<ApiResultDTO> getSpells() {
         try {
             /** API 정보 조회 **/
             ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
@@ -51,9 +51,9 @@ public class SpellsController {
 
             List<Spell> spells = spellService.sendKafkaMessage(kafkaInfo, spellList);
 
-            return new ResponseEntity<>(new ApiResult(200, "success", spells), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", spells), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
