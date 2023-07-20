@@ -1,8 +1,5 @@
 package riot.api.data.engineer.serviceimpl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.apiresult.ApiResult;
@@ -31,10 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,99 +44,77 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     private final ApiKeyService apiKeyService;
     private final KafkaInfoService kafkaInfoService;
     private final MyProducer myProducer;
-    private final ExecutorService executorService;
-    private final ApiParamsService apiParamsService;
     private final MatchInfoQueryRepository matchInfoQueryRepository;
     private final WebClient webClient;
 
-    @Override
-    public MatchInfo matchInfoSave(MatchInfo matchInfo) {
-        return matchInfoRepository.save(matchInfo);
-    }
-
-    /**
-     * @param apiKey  ApiKey Entity
-     * @param apiName ApiInfo apiName(method명)
-     */
-    @Override
-    public void matchApiRequest(ApiKey apiKey, String apiName, String startDate, String endDate) {
-        try {
-            List<UserInfoDetail> userInfoDetailList = userInfoDetailService.userInfoDeatilList(apiKey.getApiKeyId());
-            ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
-            List<ApiParams> apiParamsList = apiParamsService.getApiParamsList(apiInfo.getApiInfoId());
-            Map<String, String> queryParams = setParams(apiParamsList, startDate, endDate);
-
-            for (UserInfoDetail userInfoDetail : userInfoDetailList) {
-                List<String> pathVariable = new ArrayList<>();
-                pathVariable.add(userInfoDetail.getPuuid());
-                WebClientDTO webClientDTO = WebClientDTO.builder()
-                        .apiName(apiName)
-                        .scheme(apiInfo.getApiScheme())
-                        .host(apiInfo.getApiHost())
-                        .path(apiInfo.getApiUrl())
-                        .pathVariable(pathVariable)
-                        .queryParam(queryParams).build();
-
-                WebClientCaller webClientCaller = WebClientCaller.builder()
-                        .webClientDTO(webClientDTO)
-                        .webclient(webClient)
-                        .build();
-
-                List<String> response = webClientCaller.getWebClientToList(apiKey);
-                List<MatchInfo> matchInfoList = responseToEntity(response, apiKey.getApiKeyId());
-
-                for (MatchInfo matchInfo : matchInfoList) {
-                    matchInfoRepository.save(matchInfo);
-                }
-
-                Thread.sleep(1200);
-            }
-        } catch (Exception e) {
-            log.info(" === ERROR === ");
-            log.info(e.getMessage());
-        } finally {
-            Thread.currentThread().interrupt();
-        }
-    }
 
     @Override
-    public ResponseEntity<ApiResult> createThread(String method, String startDate, String endDate) {
+    public ResponseEntity<ApiResult> createMatchInfoTasks(String method, String startDate, String endDate) {
+        log.info("===== createMatchInfoTasks Start =====");
         List<Callable<Integer>> tasks = new ArrayList<>();
         List<ApiKey> apiKeyList = apiKeyService.findList();
         ExecutorService executorService = Executors.newFixedThreadPool(apiKeyList.size());
         try {
             for (ApiKey apiKey : apiKeyList) {
                 Callable<Integer> task = () -> {
-                    matchApiRequest(apiKey, method, startDate, endDate);
+                    matchListApiCall(apiKey, method, startDate, endDate);
                     return 200;
                 };
                 tasks.add(task);
             }
             executorService.invokeAll(tasks);
             executorService.shutdown();
-            return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
-        } catch (InterruptedException e) {
-            log.info(e.getMessage());
-            executorService.shutdown();
-            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.info("===== createMatchInfoTasks End =====");
+            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+            executorService.shutdownNow();
+            log.error("===== createMatchInfoTasks End =====");
+            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    @Override
+    public void matchListApiCall(ApiKey apiKey, String apiName, String startDate, String endDate) {
+
+        try {
+            List<UserInfoDetail> userInfoDetailList = userInfoDetailService.findUserInfoDetailListByApiKey(apiKey.getApiKeyId());
+            ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
+            Map<String, String> queryParams = setParams(apiInfo.getApiParams(), startDate, endDate);
+
+            for (UserInfoDetail userInfoDetail : userInfoDetailList) {
+
+                List<String> pathVariableList = new ArrayList<>();
+                pathVariableList.add(userInfoDetail.getPuuid());
+
+                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,queryParams,apiInfo);
+                /*** 매치리스트 API 호출  ***/
+                List<String> response = webClientCaller.getWebClientToList(apiKey);
+                /*** String to MatchInfo ***/
+                List<MatchInfo> matchInfoList = responseToEntity(response, apiKey.getApiKeyId());
+                /*** matchInfo 저장 ***/
+                for (MatchInfo matchInfo : matchInfoList) {
+                    matchInfoRepository.save(matchInfo);
+                }
+                Thread.sleep(1200);
+            }
+        } catch (Exception e) {
+            log.error(" === ERROR === ");
+            log.error(e.getMessage());
         }
     }
 
     @Override
-    public List<MatchInfo> getMatchInfoList() {
-        return matchInfoRepository.findAll();
-    }
+    public ResponseEntity<ApiResult> createMatchInfoDetailTasks(ApiInfo apiInfo, List<ApiKey> apiKeyList) {
+        log.info("===== createMatchInfoDetailTasks Start =====");
 
-
-    @Override
-    public ResponseEntity<ApiResult> apiCallBatch(ApiInfo apiInfo, List<ApiKey> apiKeyList) {
-
+        int apiKeyCount = apiKeyList.size();
+        ExecutorService executorService = Executors.newFixedThreadPool(apiKeyCount);
         try {
-            int apiKeyCount = apiKeyList.size();
-            ExecutorService executorService = Executors.newFixedThreadPool(apiKeyCount);
-            List<MatchInfo> matchInfoList = matchInfoQueryRepository.findMatchInfoByCollectCompleteYn();
 
-            List<List<MatchInfo>> partionMatchInfoList = partitionList(matchInfoList, apiKeyCount);
+            /*** 전체 데이터 find ***/
+            List<List<MatchInfo>> partionMatchInfoList = partitionList(matchInfoQueryRepository.findMatchInfoByCollectCompleteYnIsFalse(),apiKeyCount);
+
             List<Callable<Integer>> tasks = new ArrayList<>();
             KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
 
@@ -149,37 +122,59 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                 List<MatchInfo> matchInfoPartition = partionMatchInfoList.get(i);
                 ApiKey apiKey = apiKeyList.get(i);
                 Callable<Integer> task = () -> {
-                    apiCallRepeat(apiInfo, apiKey, matchInfoPartition, kafkaInfo);
+                    matchDetailApiCall(apiInfo, apiKey, matchInfoPartition, kafkaInfo);
                     return 200;
                 };
                 tasks.add(task);
             }
             executorService.invokeAll(tasks);
             executorService.shutdown();
-            return new ResponseEntity(new ApiResult(200, "success", null), HttpStatus.OK);
+
+            log.info("===== MatchInfoDetailTasks End =====");
+            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
         } catch (Exception e) {
             executorService.shutdownNow();
             log.error(e.getMessage());
-            return new ResponseEntity(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("===== MatchInfoDetailTasks End =====");
+            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    protected void apiCallRepeat(ApiInfo apiInfo, ApiKey apiKey, List<MatchInfo> matchInfos, KafkaInfo kafkaInfo) {
+    @Override
+    @Transactional
+    public ApiResult deleteAllByCollectCompleteYn(String collectCompleteYn) {
+        try{
+            Optional<String> optionalCollectCompleteYn = Optional.ofNullable(collectCompleteYn);
+            if(optionalCollectCompleteYn.isPresent()){
+                if(optionalCollectCompleteYn.get().equals("true")){
+                    matchInfoRepository.deleteMatchInfosByCollectCompleteYn(true);
+                    return new ApiResult(200,"success",null);
+                } else if (optionalCollectCompleteYn.get().equals("false")) {
+                    matchInfoRepository.deleteMatchInfosByCollectCompleteYn(false);
+                    return new ApiResult(200,"success",null);
+                } else {
+                    return new ApiResult(400,"파라미터 값이 올바르지 않습니다. (true/false만 허용)","입력된 collectCompleteYn : " + collectCompleteYn);
+                }
+            }
+            else {
+                matchInfoRepository.deleteAll();
+                return new ApiResult(200,"success",null);
+            }
+        }catch (Exception e){
+            return new ApiResult(500,e.getMessage(),null);
+        }
+
+    }
+
+    protected void matchDetailApiCall(ApiInfo apiInfo, ApiKey apiKey, List<MatchInfo> matchInfos, KafkaInfo kafkaInfo) {
         Gson gson = new Gson();
 
         for (MatchInfo matchInfo : matchInfos) {
             try {
-                List<String> path = new ArrayList<>();
-                path.add(matchInfo.getId());
-                WebClientDTO webClientDTO = WebClientDTO.builder().scheme(apiInfo.getApiScheme())
-                        .host(apiInfo.getApiHost())
-                        .path(apiInfo.getApiUrl())
-                        .pathVariable(path).build();
+                List<String> pathVariableList = new ArrayList<>();
+                pathVariableList.add(matchInfo.getId());
 
-                WebClientCaller webClientCaller = WebClientCaller.builder()
-                        .webClientDTO(webClientDTO)
-                        .webclient(webClient)
-                        .build();
+                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,null,apiInfo);
                 String response = webClientCaller.getWebClientToString(apiKey);
 
                 if (StringUtils.isEmpty(response)) {
@@ -194,15 +189,11 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                     matchInfo.setCollectCompleteYn(true);
                     matchInfoSave(matchInfo);
                 }
-                try {
-                    Thread.sleep(1200);
-                } catch (InterruptedException e) {
-
-                }
+                Thread.sleep(1200);
             } catch (Exception e) {
-                log.info("=== ERROR ===");
-                log.info(" ApiKey : " + matchInfo.getApiKeyId());
-                log.info("ID : " + matchInfo.getId());
+                log.error("=== ERROR ===");
+                log.error(" ApiKey : " + matchInfo.getApiKeyId());
+                log.error("ID : " + matchInfo.getId());
             }
         }
     }
@@ -271,6 +262,32 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     }
 
     public String setEndDate(String endDate) {
-        return String.valueOf(LocalDateTime.of(LocalDate.parse(endDate), LocalTime.of(23, 59, 59)).atZone(ZoneId.of("Asia/Seoul")).toEpochSecond());
+        return String.valueOf(
+                LocalDateTime.of(LocalDate.parse(endDate),
+                LocalTime.of(23, 59, 59)).atZone(ZoneId.of("Asia/Seoul")).toEpochSecond());
+    }
+
+    private WebClientCaller buildWebClientCaller(List<String> pathVariableList,Map<String, String> queryParams,ApiInfo apiInfo){
+
+        WebClientDTO webClientDTO = WebClientDTO.builder()
+                .scheme(apiInfo.getApiScheme())
+                .host(apiInfo.getApiHost())
+                .path(apiInfo.getApiUrl())
+                .pathVariable(pathVariableList)
+                .queryParam(queryParams).build();
+
+        return WebClientCaller.builder()
+                .webClientDTO(webClientDTO)
+                .webclient(webClient)
+                .build();
+    }
+    @Override
+    public List<MatchInfo> findMatchInfoList() {
+        return matchInfoRepository.findAll();
+    }
+
+    @Override
+    public MatchInfo matchInfoSave(MatchInfo matchInfo) {
+        return matchInfoRepository.save(matchInfo);
     }
 }

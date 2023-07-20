@@ -11,13 +11,11 @@ import java.util.List;
 public interface UserInfoService {
 
 
-    ResponseEntity<ApiResult> apiCallBatch(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList) throws InterruptedException;
+    ResponseEntity<ApiResult> createUserEntriesTasks(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList) throws InterruptedException;
 
-    List<UserInfo> getUserInfoList(Long apiKey, String updateYn);
+    List<UserInfo> findUserInfoListUpdateYnIsN(Long apiKey, String updateYn);
 
-    List<UserInfo> getUserInfoListAll();
-
-    ApiResult removeAll(List<UserInfo> userInfoList);
+    ApiResult deleteAllByUpdateYn(String updateYn);
 
     UserInfo save(UserInfo userInfo);
 }

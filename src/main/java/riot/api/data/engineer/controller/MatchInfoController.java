@@ -2,12 +2,9 @@ package riot.api.data.engineer.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import riot.api.data.engineer.apiresult.ApiResult;
 import riot.api.data.engineer.dto.MatchInfoDto;
 import riot.api.data.engineer.entity.api.ApiInfo;
@@ -29,22 +26,29 @@ public class MatchInfoController {
     private final ApiInfoService apiInfoService;
     private final ApiKeyService apiKeyService;
 
-    @PostMapping("save")
+    @PostMapping("list")
     public ResponseEntity<ApiResult> getMatchList(@Valid @RequestBody MatchInfoDto matchInfoDto) {
-        ResponseEntity<ApiResult> response = matchInfoService.createThread(new Exception().getStackTrace()[0].getMethodName(), matchInfoDto.getStartTime(), matchInfoDto.getEndTime());
-        return response;
+        return matchInfoService.createMatchInfoTasks(new Exception().getStackTrace()[0].getMethodName(), matchInfoDto.getStartTime(), matchInfoDto.getEndTime());
     }
 
     @GetMapping("detail")
     public ResponseEntity<ApiResult> getMatchDetail(){
 
-        String apiName = "/match/detail";
-
-        ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
+        ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         List<ApiKey> apiKeyList = apiKeyService.findList();
-        ResponseEntity<ApiResult> response = matchInfoService.apiCallBatch(apiInfo, apiKeyList);
-        return response;
 
+        return matchInfoService.createMatchInfoDetailTasks(apiInfo, apiKeyList);
 
     }
+
+    @DeleteMapping("list")
+    public ResponseEntity<ApiResult> matchInfosDeleteByCollectCompleteYn(@RequestParam(required = false,name = "collectCompleteYn") String collectCompleteYn) {
+        try{
+            ApiResult apiResult = matchInfoService.deleteAllByCollectCompleteYn(collectCompleteYn);
+            return new ResponseEntity<>(apiResult, HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(new ApiResult(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }
