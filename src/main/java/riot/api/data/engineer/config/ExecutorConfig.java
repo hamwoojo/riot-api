@@ -8,9 +8,9 @@ import java.util.concurrent.Executors;
 
 @Configuration
 public class ExecutorConfig {
-
+    private static final int NUMBER_OF_THREADS = 10;
     @Bean
     public ExecutorService executorService() {
-        return Executors.newFixedThreadPool(10);
+        return Executors.newFixedThreadPool(NUMBER_OF_THREADS);
     }
 }
