@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
+import riot.api.data.engineer.entity.KafkaInfo;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class KafkaAdminConfig {
 
     @Bean
     public NewTopic setMatchTopic() {
-        return TopicBuilder.name("matchs")
+        return TopicBuilder.name(KafkaInfo.TopicName.MATCHS.getKafkaTopicName())
                 .partitions(PARTITION_COUNT)
                 .replicas(REPLICA_COUNT)
                 .compact()
@@ -39,7 +40,7 @@ public class KafkaAdminConfig {
 
     @Bean
     public NewTopic setRunes() {
-        return TopicBuilder.name("runes")
+        return TopicBuilder.name(KafkaInfo.TopicName.RUNES.getKafkaTopicName())
                 .partitions(PARTITION_COUNT)
                 .replicas(REPLICA_COUNT)
                 .compact()
@@ -48,7 +49,7 @@ public class KafkaAdminConfig {
 
     @Bean
     public NewTopic setChampions() {
-        return TopicBuilder.name("champions")
+        return TopicBuilder.name(KafkaInfo.TopicName.CHAMPIONS.getKafkaTopicName())
                 .partitions(PARTITION_COUNT)
                 .replicas(REPLICA_COUNT)
                 .compact()
@@ -57,7 +58,7 @@ public class KafkaAdminConfig {
 
     @Bean
     public NewTopic setItems() {
-        return TopicBuilder.name("items")
+        return TopicBuilder.name(KafkaInfo.TopicName.ITEMS.getKafkaTopicName())
                 .partitions(PARTITION_COUNT)
                 .replicas(REPLICA_COUNT)
                 .compact()
@@ -67,7 +68,7 @@ public class KafkaAdminConfig {
 
     @Bean
     public NewTopic setSpells() {
-        return TopicBuilder.name("spells")
+        return TopicBuilder.name(KafkaInfo.TopicName.SPELLS.getKafkaTopicName())
                 .partitions(PARTITION_COUNT)
                 .replicas(REPLICA_COUNT)
                 .compact()

@@ -1,39 +1,42 @@
 package riot.api.data.engineer.config;
 
 import io.netty.channel.ChannelOption;
-        import io.netty.handler.timeout.ReadTimeoutHandler;
-        import io.netty.handler.timeout.WriteTimeoutHandler;
-        import lombok.extern.slf4j.Slf4j;
-        import org.springframework.context.annotation.Bean;
-        import org.springframework.context.annotation.Configuration;
-        import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-        import org.springframework.web.reactive.function.client.ClientRequest;
-        import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-        import org.springframework.web.reactive.function.client.ExchangeStrategies;
-        import org.springframework.web.reactive.function.client.WebClient;
-        import reactor.core.publisher.Mono;
-        import reactor.netty.http.client.HttpClient;
-
-import java.net.URI;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.ClientRequest;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 @Configuration
 @Slf4j
 public class WebClientConfig {
 
+    private static final int CONNECT_TIMEOUT_MILLISECONDS = 3000;
+    private static final int READ_TIMEOUT_SECONDS = 5;
+    private static final int MAX_IN_MEMORY_SIZE = 2 * 1024 * 1024;
+    private static final int WRITE_TIMEOUT_SECONDS = 60;
+
+
     @Bean
     public WebClient webClient() {
         HttpClient httpClient = HttpClient.create()
                 .tcpConfiguration(
-                        client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000) //miliseconds
+                        client -> client.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLISECONDS)
                                 .doOnConnected(
-                                        conn -> conn.addHandlerLast(new ReadTimeoutHandler(5))  //sec
-                                                .addHandlerLast(new WriteTimeoutHandler(60)) //sec
+                                        conn -> conn.addHandlerLast(new ReadTimeoutHandler(READ_TIMEOUT_SECONDS))
+                                                .addHandlerLast(new WriteTimeoutHandler(WRITE_TIMEOUT_SECONDS))
                                 )
                 );
 
-        //Memory 조정: 2M (default 256KB)
         ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
-                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(2*1024*1024))
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(MAX_IN_MEMORY_SIZE))
                 .build();
 
         return WebClient.builder()
