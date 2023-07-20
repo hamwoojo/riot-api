@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.apiresult.ApiResult;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.api.ApiInfo;
+import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.VersionService;
 

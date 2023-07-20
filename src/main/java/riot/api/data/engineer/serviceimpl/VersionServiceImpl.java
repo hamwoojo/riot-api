@@ -8,7 +8,7 @@ import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.Version;
 
 import riot.api.data.engineer.entity.WebClientCaller;
-import riot.api.data.engineer.entity.api.ApiInfo;
+import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.repository.VersionQueryRepository;
 import riot.api.data.engineer.repository.VersionRepository;
 import riot.api.data.engineer.service.VersionService;

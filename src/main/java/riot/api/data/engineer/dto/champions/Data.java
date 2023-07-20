@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.champions;
+package riot.api.data.engineer.dto.champions;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;

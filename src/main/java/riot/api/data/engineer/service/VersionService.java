@@ -2,7 +2,7 @@ package riot.api.data.engineer.service;
 
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.api.ApiInfo;
+import riot.api.data.engineer.dto.api.ApiInfo;
 
 import java.util.List;
 

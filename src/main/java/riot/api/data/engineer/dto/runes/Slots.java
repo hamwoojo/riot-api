@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.runes;
+package riot.api.data.engineer.dto.runes;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;

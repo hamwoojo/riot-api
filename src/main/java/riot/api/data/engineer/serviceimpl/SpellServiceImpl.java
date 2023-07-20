@@ -11,9 +11,9 @@ import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.entity.WebClientCaller;
-import riot.api.data.engineer.entity.api.ApiInfo;
-import riot.api.data.engineer.entity.spells.Spell;
-import riot.api.data.engineer.entity.spells.Spells;
+import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.dto.spells.Spell;
+import riot.api.data.engineer.dto.spells.Spells;
 import riot.api.data.engineer.service.SpellService;
 import riot.api.data.engineer.utils.UtilManager;
 

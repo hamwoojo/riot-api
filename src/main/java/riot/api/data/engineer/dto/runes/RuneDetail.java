@@ -1,4 +1,4 @@
-package riot.api.data.engineer.entity.runes;
+package riot.api.data.engineer.dto.runes;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -2,7 +2,7 @@ package riot.api.data.engineer.serviceimpl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import riot.api.data.engineer.entity.api.ApiInfo;
+import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.repository.ApiInfoQueryRepository;
 import riot.api.data.engineer.service.ApiInfoService;
 

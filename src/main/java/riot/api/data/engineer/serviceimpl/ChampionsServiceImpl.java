@@ -11,9 +11,9 @@ import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.entity.WebClientCaller;
-import riot.api.data.engineer.entity.api.ApiInfo;
-import riot.api.data.engineer.entity.champions.Champions;
-import riot.api.data.engineer.entity.champions.Data;
+import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.dto.champions.Champions;
+import riot.api.data.engineer.dto.champions.Data;
 import riot.api.data.engineer.service.ChampionsService;
 import riot.api.data.engineer.utils.UtilManager;
 
