@@ -22,19 +22,19 @@ public class WebClientCaller {
     private WebClientDTO webClientDTO;
 
     public String getWebClientToString(ApiKey apiKey) {
-        UriBuilder builder = createMapToParam();
+        UriBuilder builder = createUriBuilder();
         URI uri = createURI(builder, webClientDTO.getPathVariable());
         return createHeader(uri, apiKey).retrieve().bodyToMono(String.class).block();
     }
 
     public String getWebClientToString() {
-        UriBuilder builder = createMapToParam();
+        UriBuilder builder = createUriBuilder();
         URI uri = createURI(builder, webClientDTO.getPathVariable());
         return createHeader(uri).retrieve().bodyToMono(String.class).block();
     }
 
     public List getWebClientToList(ApiKey apiKey) {
-        UriBuilder builder = createMapToParam();
+        UriBuilder builder = createUriBuilder();
         URI uri = createURI(builder, webClientDTO.getPathVariable());
         return createHeader(uri, apiKey).retrieve().bodyToMono(List.class).block();
     }
@@ -55,7 +55,7 @@ public class WebClientCaller {
             return webclient.get().uri(uri).header(apiKey.getKeyName(), apiKey.getApiKey());
     }
 
-    private UriBuilder createMapToParam(){
+    private UriBuilder createUriBuilder(){
 
         UriBuilder uriBuilder = getUriBuilder();
 
