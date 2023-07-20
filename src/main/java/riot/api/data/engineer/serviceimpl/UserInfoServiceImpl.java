@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.UserInfo;
 import riot.api.data.engineer.entity.WebClientCaller;
@@ -34,7 +34,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final UserInfoQueryRepository userInfoQueryRepository;
 
     @Override
-    public ResponseEntity<ApiResult> createUserEntriesTasks(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList) {
+    public ResponseEntity<ApiResultDTO> createUserEntriesTasks(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList) {
         log.info("===== createUserEntriesTasks Start =====");
         int batchSize = apiKeyList.size();
         List<Callable<Integer>> tasks = new ArrayList<>();
@@ -59,10 +59,10 @@ public class UserInfoServiceImpl implements UserInfoService {
         catch (Exception e){
             executorService.shutdownNow();
             log.info("===== createUserEntriesTasks End =====");
-            return new ResponseEntity<>(new ApiResult(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         log.info("===== createUserEntriesTasks End =====");
-        return new ResponseEntity<>(new ApiResult(200,"success",null),HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResultDTO(200,"success",null),HttpStatus.OK);
     }
 
     public void userEntriesApiCall(ApiInfo apiInfo, ApiKey apiKey, int page, int batchSize){
@@ -106,25 +106,25 @@ public class UserInfoServiceImpl implements UserInfoService {
 
     @Override
     @Transactional
-    public ApiResult deleteAllByUpdateYn(String updateYn) {
+    public ApiResultDTO deleteAllByUpdateYn(String updateYn) {
         try{
             Optional<String> optionalUpdateYn = Optional.ofNullable(updateYn);
             if(optionalUpdateYn.isPresent()){
                 if(optionalUpdateYn.get().equals("Y") || optionalUpdateYn.get().equals("N") ){
                     userInfoRepository.deleteUserInfosByUpdateYn(updateYn);
-                    return new ApiResult(200,"success",null);
+                    return new ApiResultDTO(200,"success",null);
                 }
                 else {
-                    return new ApiResult(400,"파라미터 값이 올바르지 않습니다. (Y/N만 허용)","입력된 updateYn : " + updateYn);
+                    return new ApiResultDTO(400,"파라미터 값이 올바르지 않습니다. (Y/N만 허용)","입력된 updateYn : " + updateYn);
                 }
             }
             else {
                 userInfoRepository.deleteAll();
-                return new ApiResult(200,"success",null);
+                return new ApiResultDTO(200,"success",null);
             }
 
         }catch (Exception e){
-            return new ApiResult(500,e.getMessage(),null);
+            return new ApiResultDTO(500,e.getMessage(),null);
         }
 
     }

@@ -1,7 +1,7 @@
 package riot.api.data.engineer.service;
 
 import org.springframework.http.ResponseEntity;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.MatchInfo;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.api.ApiKey;
@@ -14,12 +14,12 @@ public interface MatchInfoService {
 
     void matchListApiCall(ApiKey apiKey, String apiName, String startDate, String endDate);
 
-    ResponseEntity<ApiResult> createMatchInfoTasks(String method, String startDate, String endDate);
+    ResponseEntity<ApiResultDTO> createMatchInfoTasks(String method, String startDate, String endDate);
 
     List<MatchInfo> findMatchInfoList();
 
-    ResponseEntity<ApiResult> createMatchInfoDetailTasks(ApiInfo apiInfo, List<ApiKey> apiKeyList);
+    ResponseEntity<ApiResultDTO> createMatchInfoDetailTasks(ApiInfo apiInfo, List<ApiKey> apiKeyList);
 
-    ApiResult deleteAllByCollectCompleteYn(String collectCompleteYn);
+    ApiResultDTO deleteAllByCollectCompleteYn(String collectCompleteYn);
 
 }

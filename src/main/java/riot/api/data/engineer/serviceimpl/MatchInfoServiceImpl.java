@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.*;
 import riot.api.data.engineer.dto.api.ApiInfo;
@@ -49,7 +49,7 @@ public class MatchInfoServiceImpl implements MatchInfoService {
 
 
     @Override
-    public ResponseEntity<ApiResult> createMatchInfoTasks(String method, String startDate, String endDate) {
+    public ResponseEntity<ApiResultDTO> createMatchInfoTasks(String method, String startDate, String endDate) {
         log.info("===== createMatchInfoTasks Start =====");
         List<Callable<Integer>> tasks = new ArrayList<>();
         List<ApiKey> apiKeyList = apiKeyService.findList();
@@ -65,13 +65,13 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             executorService.invokeAll(tasks);
             executorService.shutdown();
             log.info("===== createMatchInfoTasks End =====");
-            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", null), HttpStatus.OK);
         }
         catch (Exception e) {
             log.error(e.getMessage());
             executorService.shutdownNow();
             log.error("===== createMatchInfoTasks End =====");
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     @Override
@@ -105,7 +105,7 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     }
 
     @Override
-    public ResponseEntity<ApiResult> createMatchInfoDetailTasks(ApiInfo apiInfo, List<ApiKey> apiKeyList) {
+    public ResponseEntity<ApiResultDTO> createMatchInfoDetailTasks(ApiInfo apiInfo, List<ApiKey> apiKeyList) {
         log.info("===== createMatchInfoDetailTasks Start =====");
 
         int apiKeyCount = apiKeyList.size();
@@ -131,37 +131,37 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             executorService.shutdown();
 
             log.info("===== MatchInfoDetailTasks End =====");
-            return new ResponseEntity<>(new ApiResult(200, "success", null), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", null), HttpStatus.OK);
         } catch (Exception e) {
             executorService.shutdownNow();
             log.error(e.getMessage());
             log.error("===== MatchInfoDetailTasks End =====");
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @Override
     @Transactional
-    public ApiResult deleteAllByCollectCompleteYn(String collectCompleteYn) {
+    public ApiResultDTO deleteAllByCollectCompleteYn(String collectCompleteYn) {
         try{
             Optional<String> optionalCollectCompleteYn = Optional.ofNullable(collectCompleteYn);
             if(optionalCollectCompleteYn.isPresent()){
                 if(optionalCollectCompleteYn.get().equals("true")){
                     matchInfoRepository.deleteMatchInfosByCollectCompleteYn(true);
-                    return new ApiResult(200,"success",null);
+                    return new ApiResultDTO(200,"success",null);
                 } else if (optionalCollectCompleteYn.get().equals("false")) {
                     matchInfoRepository.deleteMatchInfosByCollectCompleteYn(false);
-                    return new ApiResult(200,"success",null);
+                    return new ApiResultDTO(200,"success",null);
                 } else {
-                    return new ApiResult(400,"파라미터 값이 올바르지 않습니다. (true/false만 허용)","입력된 collectCompleteYn : " + collectCompleteYn);
+                    return new ApiResultDTO(400,"파라미터 값이 올바르지 않습니다. (true/false만 허용)","입력된 collectCompleteYn : " + collectCompleteYn);
                 }
             }
             else {
                 matchInfoRepository.deleteAll();
-                return new ApiResult(200,"success",null);
+                return new ApiResultDTO(200,"success",null);
             }
         }catch (Exception e){
-            return new ApiResult(500,e.getMessage(),null);
+            return new ApiResultDTO(500,e.getMessage(),null);
         }
 
     }

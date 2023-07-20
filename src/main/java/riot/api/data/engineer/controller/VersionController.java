@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.service.ApiInfoService;
@@ -26,7 +26,7 @@ public class VersionController {
     private final WebClient webClient;
 
     @GetMapping("")
-    public ResponseEntity<ApiResult> getVersion() {
+    public ResponseEntity<ApiResultDTO> getVersion() {
         try {
             ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
 
@@ -36,21 +36,21 @@ public class VersionController {
 
             versionService.save(versionList);
 
-            return new ResponseEntity<>(new ApiResult(200, "success", versionList), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", versionList), HttpStatus.OK);
         }
         catch (Exception e) {
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/current")
-    public ResponseEntity<ApiResult> getCurrentVersion() {
+    public ResponseEntity<ApiResultDTO> getCurrentVersion() {
         try{
             Version version = versionService.findOneByCurrentVersion();
-            return new ResponseEntity<>(new ApiResult(200, "success", version), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", version), HttpStatus.OK);
         }
             catch (Exception e) {
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

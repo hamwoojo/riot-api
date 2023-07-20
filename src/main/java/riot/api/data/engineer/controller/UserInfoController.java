@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.api.ApiKey;
 import riot.api.data.engineer.service.ApiInfoService;
@@ -25,7 +25,7 @@ public class UserInfoController {
     private final UserInfoService userInfoService;
 
     @GetMapping("/user/entries")
-    public ResponseEntity<ApiResult> getUserEntries() throws InterruptedException {
+    public ResponseEntity<ApiResultDTO> getUserEntries() throws InterruptedException {
         List<ApiInfo> apiInfoList = apiInfoService.findByName(new Exception().getStackTrace()[0].getMethodName());
         List<ApiKey> apiKeyList = apiKeyService.findList();
 
@@ -34,12 +34,12 @@ public class UserInfoController {
     }
 
     @DeleteMapping("/user/entries")
-    public ResponseEntity<ApiResult> userEntriesDeleteByUpdateYn(@RequestParam(required = false,name = "updateYn") String updateYn) {
+    public ResponseEntity<ApiResultDTO> userEntriesDeleteByUpdateYn(@RequestParam(required = false,name = "updateYn") String updateYn) {
         try{
-            ApiResult apiResult = userInfoService.deleteAllByUpdateYn(updateYn);
+            ApiResultDTO apiResult = userInfoService.deleteAllByUpdateYn(updateYn);
             return new ResponseEntity<>(apiResult,HttpStatus.OK);
         }catch (Exception e){
-            return new ResponseEntity<>(new ApiResult(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

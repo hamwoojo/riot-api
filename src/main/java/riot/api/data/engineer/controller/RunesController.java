@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.dto.api.ApiInfo;
@@ -35,7 +35,7 @@ public class RunesController {
     private final WebClient webClient;
 
     @GetMapping("")
-    public ResponseEntity<ApiResult> getRunes() {
+    public ResponseEntity<ApiResultDTO> getRunes() {
         try {
             /** API 정보 조회 **/
             ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
@@ -52,9 +52,9 @@ public class RunesController {
             /** 카프카 메세지 전송 **/
             List<Rune> runes = runeService.sendKafkaMessage(kafkaInfo, runeList, version);
 
-            return new ResponseEntity<>(new ApiResult(200, "success", runes), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(200, "success", runes), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResult(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

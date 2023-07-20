@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import riot.api.data.engineer.apiresult.ApiResult;
+import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.MatchInfoDto;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.api.ApiKey;
@@ -27,12 +27,12 @@ public class MatchInfoController {
     private final ApiKeyService apiKeyService;
 
     @PostMapping("list")
-    public ResponseEntity<ApiResult> getMatchList(@Valid @RequestBody MatchInfoDto matchInfoDto) {
+    public ResponseEntity<ApiResultDTO> getMatchList(@Valid @RequestBody MatchInfoDto matchInfoDto) {
         return matchInfoService.createMatchInfoTasks(new Exception().getStackTrace()[0].getMethodName(), matchInfoDto.getStartTime(), matchInfoDto.getEndTime());
     }
 
     @GetMapping("detail")
-    public ResponseEntity<ApiResult> getMatchDetail(){
+    public ResponseEntity<ApiResultDTO> getMatchDetail(){
 
         ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         List<ApiKey> apiKeyList = apiKeyService.findList();
@@ -42,12 +42,12 @@ public class MatchInfoController {
     }
 
     @DeleteMapping("list")
-    public ResponseEntity<ApiResult> matchInfosDeleteByCollectCompleteYn(@RequestParam(required = false,name = "collectCompleteYn") String collectCompleteYn) {
+    public ResponseEntity<ApiResultDTO> matchInfosDeleteByCollectCompleteYn(@RequestParam(required = false,name = "collectCompleteYn") String collectCompleteYn) {
         try{
-            ApiResult apiResult = matchInfoService.deleteAllByCollectCompleteYn(collectCompleteYn);
-            return new ResponseEntity<>(apiResult, HttpStatus.OK);
+            ApiResultDTO apiResultDTO = matchInfoService.deleteAllByCollectCompleteYn(collectCompleteYn);
+            return new ResponseEntity<>(apiResultDTO, HttpStatus.OK);
         }catch (Exception e){
-            return new ResponseEntity<>(new ApiResult(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
