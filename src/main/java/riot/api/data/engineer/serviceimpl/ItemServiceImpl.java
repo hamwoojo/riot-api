@@ -7,70 +7,58 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
+import riot.api.data.engineer.dto.api.ApiKey;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.WebClientCaller;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.items.Item;
 import riot.api.data.engineer.dto.items.Items;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.ItemService;
+import riot.api.data.engineer.service.KafkaInfoService;
+import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
-
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+
+    private static final String JSON_OBJECT_DATA = "data";
+
     private final MyProducer myProducer;
+    private final ApiInfoService apiInfoService;
+    private final VersionService versionService;
+    private final KafkaInfoService kafkaInfoService;
+    private final WebClient webClient;
+    private final ApiCallHelper apiCallHelper;
+
     @Override
     public Items setItems(String response) {
-        JsonObject jsonObject = new UtilManager().StringToJsonObject(response);
+        JsonObject responseJsonObject = UtilManager.StringToJsonObject(response);
 
-        Items items = new Items();
+        Items items = new Items(responseJsonObject);
+        JsonObject itemsData = responseJsonObject.getAsJsonObject(JSON_OBJECT_DATA);
+
+        items = setDataList(items,itemsData);
+
+        return items;
+    }
+
+    private Items setDataList(Items items, JsonObject itemsData) {
         Gson gson = new Gson();
-
-        items.setVersion(String.valueOf(jsonObject.get("version")));
-        items.setType(String.valueOf(jsonObject.get("type")));
-
-        JsonObject itemsData = jsonObject.getAsJsonObject("data");
-        List<Item> itemList = new ArrayList<>();
 
         itemsData.keySet().forEach(key -> {
             JsonObject itemJson = itemsData.getAsJsonObject(key);
             Item item = gson.fromJson(itemJson,Item.class);
             item.setItemId(key);
-            itemList.add(item);
+            items.getItemList().add(item);
         });
-        items.setItemList(itemList);
 
         return items;
-    }
-
-    @Override
-    public List<String> setPathVariableVersion(Version version) {
-        List<String> pathVariable = new ArrayList<>();
-        pathVariable.add(version.getVersion());
-        return pathVariable;
-    }
-
-    @Override
-    public String apiCall(WebClient webClient, ApiInfo apiInfo, List<String> pathVariable) {
-
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariable)
-                .build();
-
-        WebClientCaller webClientCaller = WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-
-        return webClientCaller.getWebClientToString();
     }
 
     @Override
@@ -83,6 +71,25 @@ public class ItemServiceImpl implements ItemService {
             myProducer.sendMessage(kafkaInfo, json);
         });
         return items.getItemList();
+    }
+
+    @Override
+    public List<Item> getItemData() {
+        ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
+        Version version = versionService.findOneByCurrentVersion();
+
+        List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
+        WebClientDTO webClientDTO = apiCallHelper.getWebClientDTO(apiInfo,pathVariable, Collections.emptyMap());
+
+        ApiKey apiKey = new ApiKey().getEmptyApiKey();
+        String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
+
+        Items itemList = setItems(response);
+
+        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
+        List<Item> items = sendKafkaMessage(kafkaInfo, itemList);
+
+        return items;
     }
 
 }
