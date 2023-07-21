@@ -19,10 +19,10 @@ public class ApiInfo {
     @Column(name = "api_info_id")
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     Long apiInfoId;
-    /** api 명 **/
+
     @Column(name = "api_name")
     private String apiName;
-    /** 호출 url **/
+
     @Column(name = "api_url")
     String apiUrl;
 
@@ -31,18 +31,19 @@ public class ApiInfo {
 
     @Column(name = "api_host")
     private String apiHost;
-    /** 설명 **/
+
     @Column(name = "description")
     String description;
-    /** GET,POST,PUT,DELETE **/
+
     @Column(name = "http_method")
     String httpMethod;
-    /** 호출 제한 **/
+
     @Column(name = "rate_limit")
     int rateLimit;
-    /** 호출 제한 텀 **/
+
     @Column(name = "rate_limit_interval")
     int rateLimitInterval;
+
     @Column(name = "content_type")
     private String contentType;
 

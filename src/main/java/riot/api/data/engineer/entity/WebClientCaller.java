@@ -82,9 +82,7 @@ public class WebClientCaller {
                 uriBuilder.queryParam(entry.getKey(), entry.getValue());
             }
         }
-        if(paging.isPresent()){
-            uriBuilder.queryParamIfPresent(PAGE, Optional.ofNullable(paging.get().get(PAGE))).build();
-        }
+        paging.ifPresent(stringStringMap -> uriBuilder.queryParamIfPresent(PAGE, Optional.ofNullable(stringStringMap.get(PAGE))).build());
         return uriBuilder;
     }
 

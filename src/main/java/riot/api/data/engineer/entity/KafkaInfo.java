@@ -13,13 +13,13 @@ public class KafkaInfo {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     @Column(name = "topic_name")
-    String topicName;
+    private String topicName;
     @Column(name = "partition")
-    Integer partition;
+    private Integer partition;
     @Column(name = "replicas")
-    Integer replicas;
+    private Integer replicas;
     @Column(name = "api_info_id")
-    Long apiInfoId;
+    private Long apiInfoId;
 
     public enum TopicName{
         MATCHS("matchs"),
@@ -27,7 +27,7 @@ public class KafkaInfo {
         CHAMPIONS("champions"),
         ITEMS("items"),
         SPELLS("spells");
-        String kafkaTopicName;
+        final String kafkaTopicName;
         TopicName(String kafkaTopicName) {
             this.kafkaTopicName = kafkaTopicName;
         }

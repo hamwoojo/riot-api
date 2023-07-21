@@ -28,7 +28,6 @@ import java.util.List;
 public class RunesController {
 
     private final ApiInfoService apiInfoService;
-
     private final VersionService versionService;
     private final KafkaInfoService kafkaInfoService;
     private final RuneService runeService;
@@ -37,19 +36,12 @@ public class RunesController {
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getRunes() {
         try {
-            /** API 정보 조회 **/
             ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
-            /** 버전 조회 **/
             Version version = versionService.findOneByCurrentVersion();
-            /** KAFKA 정보 조회 **/
             KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
-            /** pathVariable 세팅 **/
             List<String> pathVariable = runeService.setPathVariableVersion(version);
-            /** api RESPONSE **/
             String response = runeService.apiCall(webClient, apiInfo, pathVariable);
-            /** String to POJO **/
             RuneList runeList = runeService.setRuneList(response);
-            /** 카프카 메세지 전송 **/
             List<Rune> runes = runeService.sendKafkaMessage(kafkaInfo, runeList, version);
 
             return new ResponseEntity<>(new ApiResultDTO(200, "success", runes), HttpStatus.OK);
