@@ -22,4 +22,15 @@ public class ApiKey {
     @Column(name = "key_name")
     String keyName;
 
+    public ApiKey getEmptyApiKey() {
+        return new ApiKey();
+    }
+
+    public String getKeyName() {
+        return keyName != null ? keyName : "";
+    }
+
+    public String getApiKey() {
+        return apiKey != null ? apiKey : "";
+    }
 }

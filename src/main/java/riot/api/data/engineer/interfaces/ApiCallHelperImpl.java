@@ -1,5 +1,6 @@
 package riot.api.data.engineer.interfaces;
 
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
@@ -12,9 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class ApiCallHelperImpl implements ApiCallHelper{
     @Override
-    public WebClientDTO builderWebClientDTO(ApiInfo apiInfo, List<String> pathVariable, Map<String, String> queryParams){
+    public WebClientDTO getWebClientDTO(ApiInfo apiInfo, List<String> pathVariable, Map<String, String> queryParams){
         WebClientDTO.WebClientDTOBuilder builder = WebClientDTO.builder().
                 scheme(apiInfo.getApiScheme())
                 .host(apiInfo.getApiHost())

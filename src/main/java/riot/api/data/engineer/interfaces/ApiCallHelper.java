@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ApiCallHelper {
-    WebClientDTO builderWebClientDTO(ApiInfo apiInfo, List<String> pathVariable, Map<String, String> queryParams);
+    WebClientDTO getWebClientDTO(ApiInfo apiInfo, List<String> pathVariable, Map<String, String> queryParams);
 
     List<String> setPathVariableVersion(Version version);
 

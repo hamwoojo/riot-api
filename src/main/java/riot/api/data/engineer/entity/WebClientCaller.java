@@ -11,7 +11,6 @@ import riot.api.data.engineer.dto.api.ApiKey;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 
@@ -44,15 +43,15 @@ public class WebClientCaller {
         UriBuilder builder = createUriBuilder();
         URI uri = createURI(builder, webClientDTO.getPathVariable());
         WebClient.RequestBodySpec request = (WebClient.RequestBodySpec) createHeader(uri);
-        boolean apiKeyIsEmpty = apiKeyCheck(apiKey);
+        boolean apiKeyIsEmpty = apiKeyNullCheck(apiKey);
         if(!apiKeyIsEmpty){
             request = request.header(apiKey.getKeyName(),apiKey.getApiKey());
         }
         return request.retrieve().bodyToMono(responseType).block();
     }
 
-    private boolean apiKeyCheck(ApiKey apiKey) {
-        return Objects.isNull(apiKey);
+    private boolean apiKeyNullCheck(ApiKey apiKey) {
+        return apiKey.getApiKey().isEmpty() || apiKey.getKeyName().isEmpty();
     }
 
     private URI createURI(UriBuilder uriBuilder, List<String> pathVariable){
