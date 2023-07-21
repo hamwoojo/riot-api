@@ -7,7 +7,8 @@ import riot.api.data.engineer.dto.api.ApiInfo;
 
 import java.util.List;
 
-import static riot.api.data.engineer.entity.api.QApiInfo.apiInfo;
+import static riot.api.data.engineer.dto.api.QApiInfo.apiInfo;
+
 
 @RequiredArgsConstructor
 @Repository

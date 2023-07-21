@@ -4,7 +4,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import riot.api.data.engineer.dto.api.ApiKey;
-import riot.api.data.engineer.entity.api.QApiKey;
+import riot.api.data.engineer.dto.api.QApiKey;
 
 import java.util.List;
 
