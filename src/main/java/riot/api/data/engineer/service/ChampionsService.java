@@ -1,10 +1,7 @@
 package riot.api.data.engineer.service;
 
 
-import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.entity.KafkaInfo;
-import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.champions.Champions;
 import riot.api.data.engineer.dto.champions.Data;
 
@@ -14,9 +11,7 @@ public interface ChampionsService {
 
     Champions setChampions(String response);
 
-    String apiCall(WebClient webClient, ApiInfo apiInfo, List<String> pathVariable);
-
-    List<String> setPathVariableVersion(Version version);
-
     List<Data> sendKafkaMessage(KafkaInfo kafkaInfo, Champions champions);
+
+    List<Data> getChampionsData();
 }

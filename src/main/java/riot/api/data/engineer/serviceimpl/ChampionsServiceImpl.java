@@ -7,17 +7,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
+import riot.api.data.engineer.dto.api.ApiKey;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.WebClientCaller;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.champions.Champions;
 import riot.api.data.engineer.dto.champions.Data;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.ChampionsService;
+import riot.api.data.engineer.service.KafkaInfoService;
+import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +31,11 @@ import java.util.stream.Collectors;
 public class ChampionsServiceImpl implements ChampionsService {
     private static final String JSON_OBJECT_DATA = "data";
     private final MyProducer myProducer;
+    private final ApiInfoService apiInfoService;
+    private final VersionService versionService;
+    private final KafkaInfoService kafkaInfoService;
+    private final ApiCallHelper apiCallHelper;
+    private final WebClient webClient;
 
     @Override
     public Champions setChampions(String response) {
@@ -42,37 +52,11 @@ public class ChampionsServiceImpl implements ChampionsService {
     private List<Data> setChampionsDataList(List<Data> dataList, JsonObject championData) {
         Gson gson = new Gson();
         championData.keySet().forEach(key ->{
-            String championName = key;
-            JsonObject championJsonObject = championData.getAsJsonObject(championName);
+            JsonObject championJsonObject = championData.getAsJsonObject(key);
             Data data = gson.fromJson(championJsonObject,Data.class);
             dataList.add(data);
         });
         return dataList;
-    }
-
-    @Override
-    public String apiCall(WebClient webClient, ApiInfo apiInfo, List<String> pathVariable) {
-
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariable)
-                .build();
-
-        WebClientCaller webClientCaller = WebClientCaller.builder()
-                .webclient(webClient)
-                .webClientDTO(webClientDTO)
-                .build();
-
-        return webClientCaller.getWebClientToString();
-    }
-
-    @Override
-    public List<String> setPathVariableVersion(Version version) {
-        List<String> pathVariable = new ArrayList<>();
-        pathVariable.add(version.getVersion());
-        return pathVariable;
     }
 
     @Override
@@ -82,6 +66,25 @@ public class ChampionsServiceImpl implements ChampionsService {
         String jsonData = UtilManager.collectionToJsonString(datalist);
         myProducer.sendMessage(kafkaInfo, jsonData);
         return datalist;
+    }
+
+    @Override
+    public List<Data> getChampionsData() {
+        ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
+        Version version = versionService.findOneByCurrentVersion();
+
+        List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
+        WebClientDTO webClientDTO = apiCallHelper.getWebClientDTO(apiInfo,pathVariable, Collections.emptyMap());
+
+        ApiKey apiKey = new ApiKey().getEmptyApiKey();
+        String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
+
+        Champions champions = setChampions(response);
+
+        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
+        List<Data> dataList = sendKafkaMessage(kafkaInfo, champions);
+
+        return dataList;
     }
 
     private List<Data> setChampionVersion(List<Data> dataList, Champions champions) {
