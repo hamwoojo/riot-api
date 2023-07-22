@@ -13,17 +13,24 @@ import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.UserInfo;
-import riot.api.data.engineer.entity.WebClientCaller;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.repository.UserInfoQueryRepository;
 import riot.api.data.engineer.repository.UserInfoRepository;
+import riot.api.data.engineer.service.ApiInfoService;
+import riot.api.data.engineer.service.ApiKeyService;
 import riot.api.data.engineer.service.UserInfoService;
+import riot.api.data.engineer.utils.UtilManager;
 
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,61 +39,76 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final WebClient webClient;
     private final UserInfoRepository userInfoRepository;
     private final UserInfoQueryRepository userInfoQueryRepository;
+    private final ApiInfoService apiInfoService;
+    private final ApiKeyService apiKeyService;
+    private final ApiCallHelper apiCallHelper;
 
     @Override
-    public ResponseEntity<ApiResultDTO> createUserEntriesTasks(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList) {
-        log.info("===== createUserEntriesTasks Start =====");
-        int batchSize = apiKeyList.size();
-        List<Callable<Integer>> tasks = new ArrayList<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(batchSize);
+    public ResponseEntity<ApiResultDTO> getUserEntries() {
 
-        for(ApiInfo apiInfo : apiInfoList) {
-            int page = 1;
-            for (ApiKey apiKey : apiKeyList) {
-                int finalPage = page;
-                Callable<Integer> task = () -> {
-                    userEntriesApiCall(apiInfo, apiKey, finalPage,batchSize);
-                    return 200;
-                };
-                page++;
-                tasks.add(task);
-            }
-        }
+        log.info("===== createUserEntriesTasks Start =====");
+        List<ApiInfo> apiInfoList = apiInfoService.findByName(new Exception().getStackTrace()[0].getMethodName());
+        List<ApiKey> apiKeyList = apiKeyService.findList();
+
+        int batchSize = apiKeyList.size();
+        ExecutorService executorService = Executors.newFixedThreadPool(batchSize);
+        List<Callable<Boolean>> tasks = createCallableTasks(apiInfoList,apiKeyList,batchSize);
+
         try{
             executorService.invokeAll(tasks);
-            executorService.shutdown();
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null), HttpStatus.OK);
         }
         catch (Exception e){
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        finally {
             executorService.shutdownNow();
             log.info("===== createUserEntriesTasks End =====");
-            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        log.info("===== createUserEntriesTasks End =====");
-        return new ResponseEntity<>(new ApiResultDTO(200,"success",null),HttpStatus.OK);
+
+    }
+
+    private List<Callable<Boolean>> createCallableTasks(List<ApiInfo> apiInfoList, List<ApiKey> apiKeyList,int batchSize) {
+        List<Callable<Boolean>> tasks =
+        apiInfoList.stream()
+                .flatMap(apiInfo -> apiKeyList.stream()
+                        .map(apiKey -> {
+                            int page = apiKeyList.indexOf(apiKey) + 1;
+                            return (Callable<Boolean>) () -> {
+                                userEntriesApiCall(apiInfo, apiKey, page, batchSize);
+                                return true;
+                            };
+                        })
+                )
+                .collect(Collectors.toList());
+
+        return tasks;
     }
 
     public void userEntriesApiCall(ApiInfo apiInfo, ApiKey apiKey, int page, int batchSize){
         Gson gson = new Gson();
         int pageSum = page;
+
         try{
+
+            WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+            Map<String,String> paging = new HashMap<>();
+            Type listType = new TypeToken<List<UserInfo>>() {}.getType();
+
             while(true){
-                /*** API 호출 세팅 ***/
-                Map<String,String> paging = new HashMap<>();
-                paging.put("page",String.valueOf(pageSum));
-                WebClientCaller webClientCaller = buildWebClientCaller(paging,apiInfo);
-                /*** API 호출 ***/
-                String response = webClientCaller.getWebClientToString(apiKey);
-                /*** String to userInfoList ***/
-                List<UserInfo> userInfoList = gson.fromJson(response, new TypeToken<List<UserInfo>>(){}.getType());
+                paging.put(UtilManager.PAGE,String.valueOf(pageSum));
+                WebClientParams webClientParams = WebClientParams.builder().pagingMap(paging).build();
+                webClientDTO.setWebClientParams(webClientDTO,webClientParams);
+
+                String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
+                List<UserInfo> userInfoList = gson.fromJson(response,listType);
 
                 if(CollectionUtils.isEmpty(userInfoList)){
                     break;
                 }
                 else{
                     for (UserInfo userInfo : userInfoList) {
-                        userInfo.setUpdateYn("N");
-                        userInfo.setApiKeyId(apiKey.getApiKeyId());
-                        userInfoRepository.save(userInfo);
+                        saveWithUpdateYnAndApiKeyId(userInfo,apiKey);
                     }
                     pageSum += batchSize;
                 }
@@ -94,9 +116,15 @@ public class UserInfoServiceImpl implements UserInfoService {
             }
         }
         catch (Exception e){
-            log.error("=== ERROR ===");
+            log.error("=== userEntriesApiCall ERROR ===");
             log.error(e.getMessage());
         }
+    }
+
+    private void saveWithUpdateYnAndApiKeyId(UserInfo userInfo, ApiKey apiKey) {
+        userInfo.setUpdateYn(UtilManager.N);
+        userInfo.setApiKeyId(apiKey.getApiKeyId());
+        userInfoRepository.saveAndFlush(userInfo);
     }
 
     @Override
@@ -110,39 +138,25 @@ public class UserInfoServiceImpl implements UserInfoService {
         try{
             Optional<String> optionalUpdateYn = Optional.ofNullable(updateYn);
             if(optionalUpdateYn.isPresent()){
-                if(optionalUpdateYn.get().equals("Y") || optionalUpdateYn.get().equals("N") ){
+                if(optionalUpdateYn.get().equals(UtilManager.Y) || optionalUpdateYn.get().equals(UtilManager.N) ){
                     userInfoRepository.deleteUserInfosByUpdateYn(updateYn);
-                    return new ApiResultDTO(200,"success",null);
+                    return new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null);
                 }
                 else {
-                    return new ApiResultDTO(400,"파라미터 값이 올바르지 않습니다. (Y/N만 허용)","입력된 updateYn : " + updateYn);
+                    return new ApiResultDTO(ApiResultDTO.ApiStatus.BAD_REQUEST.getStatusCode(), ApiResultDTO.ApiStatus.BAD_REQUEST.getStatus(), "파라미터가 올바르지 않습니다.");
                 }
             }
             else {
-                userInfoRepository.deleteAll();
-                return new ApiResultDTO(200,"success",null);
+                userInfoRepository.deleteAllInBatch();
+                return new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null);
             }
 
         }catch (Exception e){
-            return new ApiResultDTO(500,e.getMessage(),null);
+            return new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage());
         }
 
     }
 
-    private WebClientCaller buildWebClientCaller(Map<String, String> paging,ApiInfo apiInfo){
-
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .paging(paging)
-                .build();
-
-        return WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-    }
     @Override
     public UserInfo save(UserInfo userInfo) {
         return userInfoRepository.save(userInfo);
