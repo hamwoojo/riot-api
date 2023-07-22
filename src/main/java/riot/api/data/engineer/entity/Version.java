@@ -2,7 +2,6 @@ package riot.api.data.engineer.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,7 +9,6 @@ import javax.persistence.Id;
 import java.sql.Timestamp;
 
 @Entity(name = "version")
-@Setter
 @Getter
 @NoArgsConstructor
 public class Version {

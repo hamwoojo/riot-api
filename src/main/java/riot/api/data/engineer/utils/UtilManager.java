@@ -23,7 +23,7 @@ public class UtilManager {
         return gson.fromJson(response,JsonObject.class);
     }
 
-    public JsonArray StringToJsonArray(String response){
+    public static JsonArray StringToJsonArray(String response){
         Gson gson = new Gson();
         return gson.fromJson(response,JsonArray.class);
     }

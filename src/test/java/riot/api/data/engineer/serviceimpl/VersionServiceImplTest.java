@@ -31,7 +31,6 @@ class VersionServiceImplTest {
 
     @BeforeEach
     void setVersionService() {
-        versionService = new VersionServiceImpl(versionQueryRepository, versionRepository);
     }
 
     @Test
@@ -46,22 +45,6 @@ class VersionServiceImplTest {
         // Then
         assertEquals(version.getVersion(), result.getVersion(), "버전 비교");
         assertEquals(version.getCurrentVersionYn(), result.getCurrentVersionYn(), "true/false");
-    }
-
-    @Test
-    @DisplayName("API 호출 테스트")
-    void testApiCall() {
-        // Given
-        WebClient webClient = mock(WebClient.class);
-
-        ApiInfo apiInfo = new ApiInfo(18L, "getVersion", "/api/versions.json", "https", "ddragon.leagueoflegends.com");
-        // When
-        String result = versionService.apiCall(webClient, apiInfo);
-
-        // Then
-        // Assertion or verification code here
-
-        System.out.println(result);
     }
 
 

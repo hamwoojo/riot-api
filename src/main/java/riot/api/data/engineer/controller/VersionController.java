@@ -7,11 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.dto.api.ApiInfo;
-import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.VersionService;
 
 import java.util.List;
@@ -21,38 +18,27 @@ import java.util.List;
 @RequestMapping(value = "/ddragon/version")
 @RequiredArgsConstructor
 public class VersionController {
-    private final ApiInfoService apiInfoService;
+
     private final VersionService versionService;
-    private final WebClient webClient;
 
     @GetMapping("")
-    public ResponseEntity<ApiResultDTO> getVersion() {
+    public ResponseEntity<ApiResultDTO> getVersions() {
         try {
-            ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
-
-            String response = versionService.apiCall(webClient,apiInfo);
-
-            List<Version> versionList = versionService.getVersionList(response);
-
-            versionService.save(versionList);
-
-            return new ResponseEntity<>(new ApiResultDTO(200, "success", versionList), HttpStatus.OK);
-        }
-        catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            List<Version> versions = versionService.getVersions();
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), versions), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/current")
     public ResponseEntity<ApiResultDTO> getCurrentVersion() {
-        try{
+        try {
             Version version = versionService.findOneByCurrentVersion();
-            return new ResponseEntity<>(new ApiResultDTO(200, "success", version), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), version), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-            catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
     }
 
 
