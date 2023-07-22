@@ -13,5 +13,5 @@ public interface ChampionsService {
 
     List<Data> sendKafkaMessage(KafkaInfo kafkaInfo, Champions champions);
 
-    List<Data> getChampionsData();
+    List<Data> getChampions();
 }

@@ -25,7 +25,7 @@ public class ChampionsController {
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getChampions() {
         try {
-            List<Data> dataList = championsService.getChampionsData();
+            List<Data> dataList = championsService.getChampions();
 
             return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), dataList), HttpStatus.OK);
         } catch (Exception e) {

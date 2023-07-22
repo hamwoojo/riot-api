@@ -69,7 +69,7 @@ public class ChampionsServiceImpl implements ChampionsService {
     }
 
     @Override
-    public List<Data> getChampionsData() {
+    public List<Data> getChampions() {
         ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         Version version = versionService.findOneByCurrentVersion();
 
