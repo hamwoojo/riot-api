@@ -24,7 +24,7 @@ public class ItemsController {
     public ResponseEntity<ApiResultDTO> getItems() {
         try {
 
-            List<Item> itemList = itemService.getItemData();
+            List<Item> itemList = itemService.getItems();
 
             return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), itemList), HttpStatus.OK);
         } catch (Exception e) {

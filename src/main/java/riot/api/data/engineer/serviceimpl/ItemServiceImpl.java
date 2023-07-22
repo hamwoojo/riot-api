@@ -15,12 +15,13 @@ import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.items.Item;
 import riot.api.data.engineer.dto.items.Items;
 import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.ItemService;
 import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
-import java.util.Collections;
+
 import java.util.List;
 
 @Service
@@ -74,14 +75,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getItemData() {
+    public List<Item> getItems() {
         ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         Version version = versionService.findOneByCurrentVersion();
 
         List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
-        WebClientDTO webClientDTO = apiCallHelper.getWebClientDTO(apiInfo,pathVariable, Collections.emptyMap());
 
+        WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+        WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariable).build();
+        webClientDTO.setWebClientParams(webClientDTO,webClientParams);
         ApiKey apiKey = new ApiKey().getEmptyApiKey();
+
         String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
 
         Items itemList = setItems(response);

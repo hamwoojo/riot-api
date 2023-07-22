@@ -12,5 +12,5 @@ public interface ItemService {
 
     List<Item> sendKafkaMessage(KafkaInfo kafkaInfo, Items items);
 
-    List<Item> getItemData();
+    List<Item> getItems();
 }
