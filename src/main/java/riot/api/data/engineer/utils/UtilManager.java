@@ -9,10 +9,14 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 public class UtilManager {
+
+    public static final String Y = "Y";
+    public static final String N = "N";
+
+    public static final String PAGE = "page";
 
     public static JsonObject StringToJsonObject(String response){
         Gson gson = new Gson();
