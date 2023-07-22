@@ -1,6 +1,5 @@
 package riot.api.data.engineer.dto;
 
-import lombok.Builder;
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
 import riot.api.data.engineer.dto.api.ApiInfo;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-@Builder
 public class WebClientDTO {
     private static final String schemeHttps = "https";
     String scheme;
@@ -27,7 +25,7 @@ public class WebClientDTO {
         this.path = apiInfo.getApiUrl();
     }
 
-    public WebClientDTO setWebClientDTO(WebClientDTO webClientDTO, WebClientParams webClientParams){
+    public WebClientDTO setWebClientParams(WebClientDTO webClientDTO, WebClientParams webClientParams){
 
         boolean pathVariableIsEmpty = pathVariableCheck(webClientParams.getPathVariables());
         if(!pathVariableIsEmpty){
