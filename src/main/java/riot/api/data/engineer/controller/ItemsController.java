@@ -26,9 +26,11 @@ public class ItemsController {
 
             List<Item> itemList = itemService.getItems();
 
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), itemList), HttpStatus.OK);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, itemList);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
 

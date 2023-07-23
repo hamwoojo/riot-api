@@ -18,18 +18,17 @@ import java.util.List;
 @RequestMapping(value = "/ddragon/champions")
 @RequiredArgsConstructor
 public class ChampionsController {
-
     private final ChampionsService championsService;
-
 
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getChampions() {
         try {
             List<Data> dataList = championsService.getChampions();
-
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), dataList), HttpStatus.OK);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, dataList);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
 

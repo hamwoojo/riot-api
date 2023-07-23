@@ -45,9 +45,10 @@ public class MatchInfoController {
     public ResponseEntity<ApiResultDTO> matchInfosDeleteByCollectCompleteYn(@RequestParam(required = false,name = "collectCompleteYn") String collectCompleteYn) {
         try{
             ApiResultDTO apiResultDTO = matchInfoService.deleteAllByCollectCompleteYn(collectCompleteYn);
-            return new ResponseEntity<>(apiResultDTO, HttpStatus.OK);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         }catch (Exception e){
-            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
 

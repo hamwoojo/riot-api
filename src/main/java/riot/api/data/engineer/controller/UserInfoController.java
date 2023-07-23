@@ -28,7 +28,8 @@ public class UserInfoController {
             ApiResultDTO apiResult = userInfoService.deleteAllByUpdateYn(updateYn);
             return new ResponseEntity<>(apiResult, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
 

@@ -46,7 +46,7 @@ public class UserInfoServiceImpl implements UserInfoService {
     @Override
     public ResponseEntity<ApiResultDTO> getUserEntries() {
 
-        log.info("===== createUserEntriesTasks Start =====");
+        log.info("===== getUserEntries Start =====");
         List<ApiInfo> apiInfoList = apiInfoService.findByName(new Exception().getStackTrace()[0].getMethodName());
         List<ApiKey> apiKeyList = apiKeyService.findList();
 
@@ -56,14 +56,16 @@ public class UserInfoServiceImpl implements UserInfoService {
 
         try{
             executorService.invokeAll(tasks);
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null), HttpStatus.OK);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         }
         catch (Exception e){
-            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
         finally {
             executorService.shutdownNow();
-            log.info("===== createUserEntriesTasks End =====");
+            log.info("===== getUserEntries End =====");
         }
 
     }
@@ -140,19 +142,23 @@ public class UserInfoServiceImpl implements UserInfoService {
             if(optionalUpdateYn.isPresent()){
                 if(optionalUpdateYn.get().equals(UtilManager.Y) || optionalUpdateYn.get().equals(UtilManager.N) ){
                     userInfoRepository.deleteUserInfosByUpdateYn(updateYn);
-                    return new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null);
+                    ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+                    return apiResultDTO;
                 }
                 else {
-                    return new ApiResultDTO(ApiResultDTO.ApiStatus.BAD_REQUEST.getStatusCode(), ApiResultDTO.ApiStatus.BAD_REQUEST.getStatus(), "파라미터가 올바르지 않습니다.");
+                    ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.BAD_REQUEST, "파라미터가 올바르지 않습니다.");
+                    return apiResultDTO;
                 }
             }
             else {
                 userInfoRepository.deleteAllInBatch();
-                return new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), null);
+                ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+                return apiResultDTO;
             }
 
         }catch (Exception e){
-            return new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage());
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return apiResultDTO;
         }
 
     }
