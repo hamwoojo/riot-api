@@ -89,9 +89,7 @@ public class ItemServiceImpl implements ItemService {
         String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
 
         Items itemList = setItems(response);
-
-        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
-        List<Item> items = sendKafkaMessage(kafkaInfo, itemList);
+        List<Item> items = sendKafkaMessage(apiInfo.getKafkaInfo(), itemList);
 
         return items;
     }

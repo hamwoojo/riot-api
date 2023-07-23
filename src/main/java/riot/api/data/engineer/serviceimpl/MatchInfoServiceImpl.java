@@ -124,13 +124,12 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             List<List<MatchInfo>> partionMatchInfoList = partitionList(matchInfoQueryRepository.findMatchInfoByCollectCompleteYnIsFalse(),apiKeyCount);
 
             List<Callable<Integer>> tasks = new ArrayList<>();
-            KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
 
             for (int i = 0; i < apiKeyCount; i++) {
                 List<MatchInfo> matchInfoPartition = partionMatchInfoList.get(i);
                 ApiKey apiKey = apiKeyList.get(i);
                 Callable<Integer> task = () -> {
-                    matchDetailApiCall(apiInfo, apiKey, matchInfoPartition, kafkaInfo);
+                    matchDetailApiCall(apiInfo, apiKey, matchInfoPartition, apiInfo.getKafkaInfo());
                     return 200;
                 };
                 tasks.add(task);

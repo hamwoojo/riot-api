@@ -1,19 +1,20 @@
 package riot.api.data.engineer.dto.api;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import riot.api.data.engineer.entity.KafkaInfo;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Getter
+@Setter
 @Entity(name = "api_info")
 @NoArgsConstructor
 public class ApiInfo {
-
-
 
     @Id
     @Column(name = "api_info_id")
@@ -47,8 +48,8 @@ public class ApiInfo {
     @Column(name = "content_type")
     private String contentType;
 
-    @OneToOne
-    @JoinColumn(name = "api_info_id")
+    @JsonIgnore
+    @OneToOne(mappedBy = "apiInfo", fetch = FetchType.LAZY)
     private KafkaInfo kafkaInfo;
 
     @OneToMany(fetch = FetchType.EAGER, cascade={CascadeType.ALL}, mappedBy = "apiInfo", orphanRemoval=true)

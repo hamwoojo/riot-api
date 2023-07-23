@@ -75,7 +75,6 @@ public class SpellServiceImpl implements SpellService {
     public List<Spell> getSpells() {
         ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         Version version = versionService.findOneByCurrentVersion();
-        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
 
         List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
         WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
@@ -86,8 +85,7 @@ public class SpellServiceImpl implements SpellService {
         String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
 
         Spells spellList = setSpells(response);
-
-        List<Spell> spells = sendKafkaMessage(kafkaInfo, spellList);
+        List<Spell> spells = sendKafkaMessage(apiInfo.getKafkaInfo(), spellList);
 
         return spells;
     }

@@ -84,8 +84,7 @@ public class ChampionsServiceImpl implements ChampionsService {
 
         Champions champions = setChampions(response);
 
-        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
-        List<Data> dataList = sendKafkaMessage(kafkaInfo, champions);
+        List<Data> dataList = sendKafkaMessage(apiInfo.getKafkaInfo(), champions);
 
         return dataList;
     }

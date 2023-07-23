@@ -2,6 +2,7 @@ package riot.api.data.engineer.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import riot.api.data.engineer.dto.api.ApiInfo;
 
 import javax.persistence.*;
 
@@ -18,7 +19,7 @@ public class KafkaInfo {
     private Integer partition;
     @Column(name = "replicas")
     private Integer replicas;
-    @Column(name = "api_info_id")
+    @Column(name = "api_info_id",insertable = false,updatable = false)
     private Long apiInfoId;
 
     public enum TopicName{
@@ -35,6 +36,8 @@ public class KafkaInfo {
             return kafkaTopicName;
         }
     }
-
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "api_info_id")
+    private ApiInfo apiInfo;
 
 }

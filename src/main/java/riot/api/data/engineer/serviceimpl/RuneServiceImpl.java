@@ -77,8 +77,7 @@ public class RuneServiceImpl implements RuneService {
 
         List<Rune> runes = setRuneList(response);
 
-        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
-        runes = sendKafkaMessage(kafkaInfo, runes, version);
+        runes = sendKafkaMessage(apiInfo.getKafkaInfo(), runes, version);
         return runes;
     }
 
