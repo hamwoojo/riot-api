@@ -7,17 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.ApiResultDTO;
-import riot.api.data.engineer.entity.KafkaInfo;
-import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.spells.Spell;
-import riot.api.data.engineer.dto.spells.Spells;
-import riot.api.data.engineer.service.ApiInfoService;
-import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.SpellService;
-import riot.api.data.engineer.service.VersionService;
 
 import java.util.List;
 
@@ -26,34 +18,17 @@ import java.util.List;
 @RequestMapping(value = "/ddragon/spells")
 @RequiredArgsConstructor
 public class SpellsController {
-
-    private final ApiInfoService apiInfoService;
-    private final VersionService versionService;
-    private final KafkaInfoService kafkaInfoService;
     private final SpellService spellService;
-    private final WebClient webClient;
+
 
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getSpells() {
         try {
-            /** API 정보 조회 **/
-            ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
-            /** 버전 조회 **/
-            Version version = versionService.findOneByCurrentVersion();
-            /** 카프카 정보 조회 **/
-            KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
+            List<Spell> spells = spellService.getSpells();
 
-            List<String> pathVariable = spellService.setPathVariableVersion(version);
-
-            String response = spellService.apiCall(webClient, apiInfo, pathVariable);
-
-            Spells spellList = spellService.setSpells(response);
-
-            List<Spell> spells = spellService.sendKafkaMessage(kafkaInfo, spellList);
-
-            return new ResponseEntity<>(new ApiResultDTO(200, "success", spells), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.OK.getStatusCode(), ApiResultDTO.ApiStatus.OK.getStatus(), spells), HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatusCode(), ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR.getStatus(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

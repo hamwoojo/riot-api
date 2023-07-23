@@ -7,14 +7,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
+import riot.api.data.engineer.dto.api.ApiKey;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.WebClientCaller;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.spells.Spell;
 import riot.api.data.engineer.dto.spells.Spells;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
+import riot.api.data.engineer.service.ApiInfoService;
+import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.SpellService;
+import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
 
 import java.util.ArrayList;
@@ -24,62 +29,70 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpellServiceImpl implements SpellService {
     private final MyProducer myProducer;
-    @Override
-    public Spells setSpells(String response) {
-        JsonObject jsonObject = new UtilManager().StringToJsonObject(response);
+    private final ApiInfoService apiInfoService;
+    private final VersionService versionService;
+    private final KafkaInfoService kafkaInfoService;
+    private final WebClient webClient;
+    private final ApiCallHelper apiCallHelper;
 
-        Spells spells = new Spells();
+    private Spells setSpells(String response) {
+
+        JsonObject jsonObject = UtilManager.StringToJsonObject(response);
+
+        Spells spells = new Spells(jsonObject);
+        JsonObject spellsData = jsonObject.getAsJsonObject(Spells.JSON_data);
+
+        List<Spell> spellList = getSpellList(spellsData);
+        spells.setSpellList(spellList);
+
+        return spells;
+    }
+
+    private List<Spell> getSpellList(JsonObject spellsData){
         Gson gson = new Gson();
-
-        spells.setVersion(String.valueOf(jsonObject.get("version")));
-        spells.setType(String.valueOf(jsonObject.get("type")));
-
-        JsonObject spellsData = jsonObject.getAsJsonObject("data");
         List<Spell> spellList = new ArrayList<>();
-
         spellsData.keySet().forEach( key -> {
             String spellName = key;
             JsonObject spellJson = spellsData.getAsJsonObject(spellName);
             Spell spell = gson.fromJson(spellJson,Spell.class);
             spellList.add(spell);
         });
-        spells.setSpellList(spellList);
-
-        return spells;
-    }
-
-    @Override
-    public List<String> setPathVariableVersion(Version version) {
-        List<String> pathVariable = new ArrayList<>();
-        pathVariable.add(version.getVersion());
-        return pathVariable;
-    }
-
-    @Override
-    public String apiCall(WebClient webClient, ApiInfo apiInfo, List<String> pathVariable) {
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariable)
-                .build();
-
-        WebClientCaller webClientCaller = WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-        return webClientCaller.getWebClientToString();
+        return spellList;
     }
 
     @Override
     public List<Spell> sendKafkaMessage(KafkaInfo kafkaInfo, Spells spellList) {
         Gson gson = new Gson();
-        for (Spell spell : spellList.getSpellList()) {
+        spellList.getSpellList().stream().forEach(spell -> {
             spell.setVersion(spellList.getVersion().replaceAll("\"",""));
             String json = gson.toJson(spell);
-            myProducer.sendMessage(kafkaInfo, json);
-        }
+            myProducer.sendMessage(kafkaInfo,json);
+        });
         return spellList.getSpellList();
     }
+
+    @Override
+    public List<Spell> getSpells() {
+        ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
+        Version version = versionService.findOneByCurrentVersion();
+        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
+
+        List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
+        WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+        WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariable).build();
+        webClientDTO.setWebClientParams(webClientDTO, webClientParams);
+        ApiKey apiKey = new ApiKey().getEmptyApiKey();
+
+        String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
+
+        Spells spellList = setSpells(response);
+
+        List<Spell> spells = sendKafkaMessage(kafkaInfo, spellList);
+
+        return spells;
+    }
+
+
+
 
 }
