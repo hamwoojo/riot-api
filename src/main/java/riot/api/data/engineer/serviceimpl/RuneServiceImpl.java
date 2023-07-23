@@ -1,6 +1,5 @@
 package riot.api.data.engineer.serviceimpl;
 
-
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -8,14 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
+import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.dto.runes.Rune;
 import riot.api.data.engineer.entity.KafkaInfo;
 import riot.api.data.engineer.entity.MyProducer;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.entity.WebClientCaller;
-import riot.api.data.engineer.dto.api.ApiInfo;
-import riot.api.data.engineer.dto.runes.Rune;
-import riot.api.data.engineer.dto.runes.RuneList;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
+import riot.api.data.engineer.service.ApiInfoService;
+import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.RuneService;
+import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
 
 import java.util.ArrayList;
@@ -25,61 +28,58 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RuneServiceImpl implements RuneService {
     private final MyProducer myProducer;
+    private final ApiInfoService apiInfoService;
+    private final VersionService versionService;
+    private final KafkaInfoService kafkaInfoService;
+    private final WebClient webClient;
+    private final ApiCallHelper apiCallHelper;
 
-    @Override
-    public RuneList setRuneList(String response) {
+    private List<Rune> setRuneList(String response) {
         Gson gson = new Gson();
 
-        RuneList runeList = new RuneList();
         List<Rune> runes = new ArrayList<>();
 
-        JsonArray jsonArray = new UtilManager().StringToJsonArray(response);
+        JsonArray jsonArray = UtilManager.StringToJsonArray(response);
         jsonArray.forEach(jsonElement -> {
             JsonObject jsonObject = jsonElement.getAsJsonObject();
             Rune rune = gson.fromJson(jsonObject, Rune.class);
             rune.getSlots().forEach(slot -> slot.getRunes().forEach(runeDetail -> {
-                runeDetail.setShortDesc(runeDetail.getShortDesc().replaceAll("<[^>]+>",""));
-                runeDetail.setLongDesc(runeDetail.getLongDesc().replaceAll("<[^>]+>",""));
+                runeDetail.setShortDesc(runeDetail.getShortDesc().replaceAll("<[^>]+>", ""));
+                runeDetail.setLongDesc(runeDetail.getLongDesc().replaceAll("<[^>]+>", ""));
             }));
             runes.add(rune);
         });
-        runeList.setRuneList(runes);
-        return runeList;
+        return runes;
     }
 
-    @Override
-    public List<String> setPathVariableVersion(Version version) {
-        List<String> pathVariable = new ArrayList<>();
-        pathVariable.add(version.getVersion());
-        return pathVariable;
-    }
-
-    @Override
-    public String apiCall(WebClient webClient, ApiInfo apiInfo, List<String> pathVariable) {
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariable)
-                .build();
-
-        WebClientCaller webClientCaller = WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-
-        return webClientCaller.getWebClientToString();
-    }
-
-    @Override
-    public List<Rune> sendKafkaMessage(KafkaInfo kafkaInfo, RuneList runeList,Version version) {
+    public List<Rune> sendKafkaMessage(KafkaInfo kafkaInfo, List<Rune> runeList, Version version) {
         Gson gson = new Gson();
-        runeList.getRuneList().forEach(rune -> {
+        runeList.forEach(rune -> {
             rune.setVersion(version.getVersion().replaceAll("\"", ""));
             String json = gson.toJson(rune);
             myProducer.sendMessage(kafkaInfo, json);
         });
-        return runeList.getRuneList();
+        return runeList;
+    }
+
+    @Override
+    public List<Rune> getRunes() {
+        ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
+        Version version = versionService.findOneByCurrentVersion();
+
+        List<String> pathVariable = apiCallHelper.setPathVariableVersion(version);
+        WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+        WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariable).build();
+        webClientDTO.setWebClientParams(webClientDTO, webClientParams);
+        ApiKey apiKey = new ApiKey().getEmptyApiKey();
+
+        String response = (String) apiCallHelper.apiCall(webClientDTO, webClient, apiKey, String.class);
+
+        List<Rune> runes = setRuneList(response);
+
+        KafkaInfo kafkaInfo = kafkaInfoService.findOneByApiInfoId(apiInfo.getApiInfoId());
+        runes = sendKafkaMessage(kafkaInfo, runes, version);
+        return runes;
     }
 
 }
