@@ -14,8 +14,6 @@ public interface UserInfoDetailService {
 
     void userInfoDetailApiCall(ApiKey apiKey, String apiName);
 
-    ResponseEntity<ApiResultDTO> createUserInfoDetailTasks(String method);
-
     UserInfoDetail jsonToEntity(String response, Long apiKeyId);
 
     List<UserInfoDetail> findUserInfoDetailList();
@@ -24,5 +22,5 @@ public interface UserInfoDetailService {
 
     ApiResultDTO deleteAll();
 
-
+    ResponseEntity<ApiResultDTO> getUserInfoDetail(String methodName);
 }

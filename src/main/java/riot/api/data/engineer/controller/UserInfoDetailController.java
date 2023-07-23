@@ -16,16 +16,12 @@ public class UserInfoDetailController {
 
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getUserInfoDetail(){
-        return userInfoDetailService.createUserInfoDetailTasks(new Exception().getStackTrace()[0].getMethodName());
+        return userInfoDetailService.getUserInfoDetail(new Exception().getStackTrace()[0].getMethodName());
     }
 
     @DeleteMapping("")
     public ResponseEntity<ApiResultDTO> userDetailDeleteAll() {
-        try{
             ApiResultDTO apiResultDTO = userInfoDetailService.deleteAll();
-            return new ResponseEntity<>(apiResultDTO, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>(new ApiResultDTO(500,e.getMessage(),null), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
     }
 }

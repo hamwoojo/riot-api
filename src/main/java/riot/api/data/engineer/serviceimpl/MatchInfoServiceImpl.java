@@ -19,6 +19,8 @@ import riot.api.data.engineer.dto.api.ApiParams;
 import riot.api.data.engineer.dto.matchdetail.Info;
 import riot.api.data.engineer.dto.matchdetail.MatchDetail;
 import riot.api.data.engineer.dto.matchdetail.MetaData;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.repository.MatchInfoQueryRepository;
 import riot.api.data.engineer.repository.MatchInfoRepository;
 import riot.api.data.engineer.service.*;
@@ -46,6 +48,7 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     private final MyProducer myProducer;
     private final MatchInfoQueryRepository matchInfoQueryRepository;
     private final WebClient webClient;
+    private final ApiCallHelper apiCallHelper;
 
 
     @Override
@@ -65,13 +68,15 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             executorService.invokeAll(tasks);
             executorService.shutdown();
             log.info("===== createMatchInfoTasks End =====");
-            return new ResponseEntity<>(new ApiResultDTO(200, "success", null), HttpStatus.OK);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         }
         catch (Exception e) {
             log.error(e.getMessage());
             executorService.shutdownNow();
             log.error("===== createMatchInfoTasks End =====");
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
     @Override
@@ -87,9 +92,12 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                 List<String> pathVariableList = new ArrayList<>();
                 pathVariableList.add(userInfoDetail.getPuuid());
 
-                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,queryParams,apiInfo);
+                WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+                WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariableList).build();
+                webClientDTO.setWebClientParams(webClientDTO,webClientParams);
+
                 /*** 매치리스트 API 호출  ***/
-                List<String> response = webClientCaller.getWebClientToList(apiKey);
+                List<String> response = (List<String>) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,List.class);
                 /*** String to MatchInfo ***/
                 List<MatchInfo> matchInfoList = responseToEntity(response, apiKey.getApiKeyId());
                 /*** matchInfo 저장 ***/
@@ -131,12 +139,15 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             executorService.shutdown();
 
             log.info("===== MatchInfoDetailTasks End =====");
-            return new ResponseEntity<>(new ApiResultDTO(200, "success", null), HttpStatus.OK);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
+
         } catch (Exception e) {
             executorService.shutdownNow();
             log.error(e.getMessage());
             log.error("===== MatchInfoDetailTasks End =====");
-            return new ResponseEntity<>(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
     }
 
@@ -148,20 +159,26 @@ public class MatchInfoServiceImpl implements MatchInfoService {
             if(optionalCollectCompleteYn.isPresent()){
                 if(optionalCollectCompleteYn.get().equals("true")){
                     matchInfoRepository.deleteMatchInfosByCollectCompleteYn(true);
-                    return new ApiResultDTO(200,"success",null);
+                    ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+                    return apiResultDTO;
                 } else if (optionalCollectCompleteYn.get().equals("false")) {
                     matchInfoRepository.deleteMatchInfosByCollectCompleteYn(false);
-                    return new ApiResultDTO(200,"success",null);
+                    ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+                    return apiResultDTO;
                 } else {
-                    return new ApiResultDTO(400,"파라미터 값이 올바르지 않습니다. (true/false만 허용)","입력된 collectCompleteYn : " + collectCompleteYn);
+                    ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.BAD_REQUEST, null);
+                    return apiResultDTO;
                 }
             }
             else {
-                matchInfoRepository.deleteAll();
-                return new ApiResultDTO(200,"success",null);
+                matchInfoRepository.deleteAllInBatch();
+                ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+                return apiResultDTO;
+
             }
         }catch (Exception e){
-            return new ApiResultDTO(500,e.getMessage(),null);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return apiResultDTO;
         }
 
     }
@@ -174,8 +191,11 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                 List<String> pathVariableList = new ArrayList<>();
                 pathVariableList.add(matchInfo.getId());
 
-                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,null,apiInfo);
-                String response = webClientCaller.getWebClientToString(apiKey);
+                WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+                WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariableList).build();
+                webClientDTO.setWebClientParams(webClientDTO,webClientParams);
+
+                String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
 
                 if (StringUtils.isEmpty(response)) {
                     continue;
@@ -267,20 +287,6 @@ public class MatchInfoServiceImpl implements MatchInfoService {
                 LocalTime.of(23, 59, 59)).atZone(ZoneId.of("Asia/Seoul")).toEpochSecond());
     }
 
-    private WebClientCaller buildWebClientCaller(List<String> pathVariableList,Map<String, String> queryParams,ApiInfo apiInfo){
-
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariableList)
-                .queryParam(queryParams).build();
-
-        return WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-    }
     @Override
     public List<MatchInfo> findMatchInfoList() {
         return matchInfoRepository.findAll();

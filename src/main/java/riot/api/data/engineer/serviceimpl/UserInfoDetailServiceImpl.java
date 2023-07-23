@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,15 +13,17 @@ import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.dto.WebClientDTO;
 import riot.api.data.engineer.entity.UserInfo;
 import riot.api.data.engineer.entity.UserInfoDetail;
-import riot.api.data.engineer.entity.WebClientCaller;
 import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.interfaces.ApiCallHelper;
+import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.repository.UserInfoDetailQueryRepository;
 import riot.api.data.engineer.repository.UserInfoDetailRepository;
 import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.ApiKeyService;
 import riot.api.data.engineer.service.UserInfoDetailService;
 import riot.api.data.engineer.service.UserInfoService;
+import riot.api.data.engineer.utils.UtilManager;
 
 
 import java.util.ArrayList;
@@ -41,9 +42,10 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
     private final ApiInfoService apiInfoService;
     private final UserInfoDetailQueryRepository userInfoDetailQueryRepository;
     private final WebClient webClient;
+    private final ApiCallHelper apiCallHelper;
 
     @Override
-    public ResponseEntity<ApiResultDTO> createUserInfoDetailTasks(String method){
+    public ResponseEntity<ApiResultDTO> getUserInfoDetail(String method){
         log.info("===== createUserInfoDetailTasks Start =====");
         List<ApiKey> apiKeyList = apiKeyService.findList();
         List<Callable<Integer>> tasks = new ArrayList<>();
@@ -64,33 +66,33 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
             executorService.shutdownNow();
             log.error(e.getMessage());
             log.info("===== createUserInfoDetailTasks End =====");
-            return new ResponseEntity(new ApiResultDTO(500, e.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
         log.info("===== createUserInfoDetailTasks End =====");
-        return new ResponseEntity(new ApiResultDTO(200, "success", null), HttpStatus.OK);
+        ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+        return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
     }
 
-    /**
-     * @param apiKey ApiKey Entity
-     * @param apiName ApiInfo apiName(method명)
-     */
     @Override
     public void userInfoDetailApiCall(ApiKey apiKey, String apiName) {
         try{
             List<UserInfo> userInfoList = userInfoService.findUserInfoListUpdateYnIsN(apiKey.getApiKeyId(), "N");
             ApiInfo apiInfo = apiInfoService.findOneByName(apiName);
 
+            WebClientDTO webClientDTO = new WebClientDTO(apiInfo);
+
             for (UserInfo userInfo : userInfoList) {
                 List<String> pathVariableList = new ArrayList<>();
                 pathVariableList.add(userInfo.getSummonerId());
-                /*** Api 호출 세팅**/
-                WebClientCaller webClientCaller = buildWebClientCaller(pathVariableList,apiInfo);
-                /*** API 호출 **/
-                String response = webClientCaller.getWebClientToString(apiKey);
-                /*** UserInfoDetail Save ***/
+
+                WebClientParams webClientParams = WebClientParams.builder().pathVariables(pathVariableList).build();
+                webClientDTO.setWebClientParams(webClientDTO,webClientParams);
+
+                String response = (String) apiCallHelper.apiCall(webClientDTO,webClient,apiKey,String.class);
+
                 userInfoDetailSave(jsonToEntity(response, apiKey.getApiKeyId()));
-                /*** userInfo Update ***/
-                userInfo.setUpdateYn("Y");
+                userInfo.setUpdateYn(UtilManager.Y);
                 userInfoService.save(userInfo);
 
                 Thread.sleep(1200);
@@ -138,30 +140,17 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
         }
     }
 
-    private WebClientCaller buildWebClientCaller(List<String> pathVariableList, ApiInfo apiInfo){
-
-        WebClientDTO webClientDTO = WebClientDTO.builder()
-                .scheme(apiInfo.getApiScheme())
-                .host(apiInfo.getApiHost())
-                .path(apiInfo.getApiUrl())
-                .pathVariable(pathVariableList)
-                .build();
-
-        return WebClientCaller.builder()
-                .webClientDTO(webClientDTO)
-                .webclient(webClient)
-                .build();
-    }
-
     @Override
     @Transactional
     public ApiResultDTO deleteAll() {
         try{
-            userInfoDetailRepository.deleteAll();
-            return new ApiResultDTO(200,"success",null);
+            userInfoDetailRepository.deleteAllInBatch();
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+            return apiResultDTO;
         }catch (Exception e){
-            return new ApiResultDTO(500,e.getMessage(),null);
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return apiResultDTO;
         }
-
     }
+
 }
