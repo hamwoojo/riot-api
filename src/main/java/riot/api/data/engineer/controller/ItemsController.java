@@ -2,7 +2,6 @@ package riot.api.data.engineer.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +22,7 @@ public class ItemsController {
     @GetMapping("")
     public ResponseEntity<ApiResultDTO> getItems() {
         try {
-
             List<Item> itemList = itemService.getItems();
-
             ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, itemList);
             return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         } catch (Exception e) {

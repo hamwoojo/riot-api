@@ -24,13 +24,12 @@ import riot.api.data.engineer.service.ApiKeyService;
 import riot.api.data.engineer.service.UserInfoDetailService;
 import riot.api.data.engineer.service.UserInfoService;
 import riot.api.data.engineer.utils.UtilManager;
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -45,33 +44,39 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
     private final ApiCallHelper apiCallHelper;
 
     @Override
-    public ResponseEntity<ApiResultDTO> getUserInfoDetail(String method){
-        log.info("===== createUserInfoDetailTasks Start =====");
+    public ResponseEntity<ApiResultDTO> getUserInfoDetail(String apiName){
+        log.info("===== getUserInfoDetail Start =====");
         List<ApiKey> apiKeyList = apiKeyService.findList();
-        List<Callable<Integer>> tasks = new ArrayList<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(apiKeyList.size());
+        int batchSize = apiKeyList.size();
+        ExecutorService executorService = Executors.newFixedThreadPool(batchSize);
+        List<Callable<Boolean>> tasks = createCallableTasks(apiKeyList,apiName);
 
         try{
-            for(ApiKey apiKey : apiKeyList){
-                Callable<Integer> task = () -> {
-                    userInfoDetailApiCall(apiKey, method);
-                    return 1;
-                };
-                tasks.add(task);
-            }
             executorService.invokeAll(tasks);
-            executorService.shutdown();
+            ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
+            return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
         }
         catch (Exception e){
-            executorService.shutdownNow();
+            log.error("=== getUserInfoDetail ERROR ===");
             log.error(e.getMessage());
-            log.info("===== createUserInfoDetailTasks End =====");
             ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.INTERNAL_SERVER_ERROR, e.getMessage());
             return new ResponseEntity<>(apiResultDTO, apiResultDTO.getHttpStatus());
         }
-        log.info("===== createUserInfoDetailTasks End =====");
-        ApiResultDTO apiResultDTO = new ApiResultDTO(ApiResultDTO.ApiStatus.OK, null);
-        return new ResponseEntity<>(apiResultDTO,apiResultDTO.getHttpStatus());
+        finally {
+            executorService.shutdownNow();
+            log.info("===== getUserInfoDetail End =====");
+
+        }
+    }
+
+    private List<Callable<Boolean>> createCallableTasks(List<ApiKey> apiKeyList,String apiName) {
+        List<Callable<Boolean>> tasks = apiKeyList.stream().map(apiKey ->
+                (Callable<Boolean>) () -> {
+                    userInfoDetailApiCall(apiKey,apiName);
+                    return true;
+                })
+                .collect(Collectors.toList());
+        return tasks;
     }
 
     @Override
@@ -110,7 +115,7 @@ public class UserInfoDetailServiceImpl implements UserInfoDetailService {
     }
 
     @Override
-    public List<UserInfoDetail> findUserInfoDetailList() {
+    public List<UserInfoDetail> findAllUserInfoDetail() {
         return userInfoDetailRepository.findAll();
     }
 
