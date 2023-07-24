@@ -16,7 +16,7 @@ public interface UserInfoDetailService {
 
     UserInfoDetail jsonToEntity(String response, Long apiKeyId);
 
-    List<UserInfoDetail> findUserInfoDetailList();
+    List<UserInfoDetail> findAllUserInfoDetail();
 
     List<UserInfoDetail> findUserInfoDetailListByApiKey(Long apiKey);
 

@@ -2,7 +2,6 @@ package riot.api.data.engineer.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import riot.api.data.engineer.dto.ApiResultDTO;
@@ -33,10 +32,8 @@ public class MatchInfoController {
 
     @GetMapping("detail")
     public ResponseEntity<ApiResultDTO> getMatchDetail(){
-
         ApiInfo apiInfo = apiInfoService.findOneByName(new Exception().getStackTrace()[0].getMethodName());
         List<ApiKey> apiKeyList = apiKeyService.findList();
-
         return matchInfoService.createMatchInfoDetailTasks(apiInfo, apiKeyList);
 
     }
