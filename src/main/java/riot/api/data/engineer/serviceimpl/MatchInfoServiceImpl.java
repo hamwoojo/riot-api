@@ -43,7 +43,6 @@ public class MatchInfoServiceImpl implements MatchInfoService {
     private final UserInfoDetailService userInfoDetailService;
     private final ApiInfoService apiInfoService;
     private final ApiKeyService apiKeyService;
-    private final KafkaInfoService kafkaInfoService;
     private final MyProducer myProducer;
     private final MatchInfoQueryRepository matchInfoQueryRepository;
     private final WebClient webClient;

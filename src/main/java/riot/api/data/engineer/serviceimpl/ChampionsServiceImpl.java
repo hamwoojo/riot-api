@@ -18,7 +18,6 @@ import riot.api.data.engineer.interfaces.ApiCallHelper;
 import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.service.ApiInfoService;
 import riot.api.data.engineer.service.ChampionsService;
-import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
 
@@ -33,7 +32,6 @@ public class ChampionsServiceImpl implements ChampionsService {
     private final MyProducer myProducer;
     private final ApiInfoService apiInfoService;
     private final VersionService versionService;
-    private final KafkaInfoService kafkaInfoService;
     private final ApiCallHelper apiCallHelper;
     private final WebClient webClient;
 

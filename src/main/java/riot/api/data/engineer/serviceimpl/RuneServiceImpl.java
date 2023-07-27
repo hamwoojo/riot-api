@@ -16,7 +16,6 @@ import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.interfaces.ApiCallHelper;
 import riot.api.data.engineer.params.WebClientParams;
 import riot.api.data.engineer.service.ApiInfoService;
-import riot.api.data.engineer.service.KafkaInfoService;
 import riot.api.data.engineer.service.RuneService;
 import riot.api.data.engineer.service.VersionService;
 import riot.api.data.engineer.utils.UtilManager;
@@ -30,7 +29,6 @@ public class RuneServiceImpl implements RuneService {
     private final MyProducer myProducer;
     private final ApiInfoService apiInfoService;
     private final VersionService versionService;
-    private final KafkaInfoService kafkaInfoService;
     private final WebClient webClient;
     private final ApiCallHelper apiCallHelper;
 
