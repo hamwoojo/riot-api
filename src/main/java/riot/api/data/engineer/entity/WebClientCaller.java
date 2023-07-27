@@ -21,24 +21,6 @@ public class WebClientCaller {
     private WebClient webclient;
     private WebClientDTO webClientDTO;
 
-    public String getWebClientToString(ApiKey apiKey) {
-        UriBuilder builder = createUriBuilder();
-        URI uri = createURI(builder, webClientDTO.getPathVariable());
-        return createHeader(uri, apiKey).retrieve().bodyToMono(String.class).block();
-    }
-
-    public String getWebClientToString() {
-        UriBuilder builder = createUriBuilder();
-        URI uri = createURI(builder, webClientDTO.getPathVariable());
-        return createHeader(uri).retrieve().bodyToMono(String.class).block();
-    }
-
-    public List getWebClientToList(ApiKey apiKey) {
-        UriBuilder builder = createUriBuilder();
-        URI uri = createURI(builder, webClientDTO.getPathVariable());
-        return createHeader(uri, apiKey).retrieve().bodyToMono(List.class).block();
-    }
-
     public Object getWebClientData(ApiKey apiKey, Class<?> responseType) {
         UriBuilder builder = createUriBuilder();
         URI uri = createURI(builder, webClientDTO.getPathVariable());
@@ -64,10 +46,6 @@ public class WebClientCaller {
 
     private WebClient.RequestHeadersSpec<?> createHeader(URI uri){
             return webclient.get().uri(uri);
-    }
-
-    private WebClient.RequestHeadersSpec<?> createHeader(URI uri, ApiKey apiKey){
-            return webclient.get().uri(uri).header(apiKey.getKeyName(), apiKey.getApiKey());
     }
 
     private UriBuilder createUriBuilder(){
