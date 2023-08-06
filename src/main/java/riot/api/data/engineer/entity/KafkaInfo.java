@@ -2,7 +2,7 @@ package riot.api.data.engineer.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.entity.api.ApiInfo;
 
 import javax.persistence.*;
 

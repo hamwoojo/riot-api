@@ -2,7 +2,7 @@ package riot.api.data.engineer.dto;
 
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
-import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.entity.api.ApiInfo;
 import riot.api.data.engineer.params.WebClientParams;
 
 import java.util.List;

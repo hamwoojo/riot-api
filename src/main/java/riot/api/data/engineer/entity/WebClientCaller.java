@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 import riot.api.data.engineer.dto.WebClientDTO;
-import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.entity.api.ApiKey;
 
 import java.net.URI;
 import java.util.List;

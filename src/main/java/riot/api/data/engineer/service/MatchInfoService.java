@@ -3,8 +3,8 @@ package riot.api.data.engineer.service;
 import org.springframework.http.ResponseEntity;
 import riot.api.data.engineer.dto.ApiResultDTO;
 import riot.api.data.engineer.entity.MatchInfo;
-import riot.api.data.engineer.dto.api.ApiInfo;
-import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.entity.api.ApiInfo;
+import riot.api.data.engineer.entity.api.ApiKey;
 
 import java.util.List;
 

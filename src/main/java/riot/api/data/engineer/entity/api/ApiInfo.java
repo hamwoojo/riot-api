@@ -1,4 +1,4 @@
-package riot.api.data.engineer.dto.api;
+package riot.api.data.engineer.entity.api;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

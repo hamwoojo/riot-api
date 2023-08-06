@@ -7,9 +7,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.entity.Version;
-import riot.api.data.engineer.dto.api.ApiInfo;
 import riot.api.data.engineer.repository.VersionQueryRepository;
 import riot.api.data.engineer.repository.VersionRepository;
 import riot.api.data.engineer.service.VersionService;

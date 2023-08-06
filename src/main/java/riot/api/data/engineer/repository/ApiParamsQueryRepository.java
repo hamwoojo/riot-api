@@ -3,7 +3,7 @@ package riot.api.data.engineer.repository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import riot.api.data.engineer.dto.api.ApiParams;
+import riot.api.data.engineer.entity.api.ApiParams;
 
 import java.util.List;
 

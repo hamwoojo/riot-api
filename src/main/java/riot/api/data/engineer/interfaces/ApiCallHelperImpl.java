@@ -3,7 +3,7 @@ package riot.api.data.engineer.interfaces;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import riot.api.data.engineer.dto.WebClientDTO;
-import riot.api.data.engineer.dto.api.ApiKey;
+import riot.api.data.engineer.entity.api.ApiKey;
 import riot.api.data.engineer.entity.Version;
 import riot.api.data.engineer.entity.WebClientCaller;
 

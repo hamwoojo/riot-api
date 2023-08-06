@@ -3,11 +3,11 @@ package riot.api.data.engineer.repository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import riot.api.data.engineer.dto.api.ApiInfo;
+import riot.api.data.engineer.entity.api.ApiInfo;
 
 import java.util.List;
 
-import static riot.api.data.engineer.entity.api.QApiInfo.apiInfo;
+import static riot.api.data.engineer.dto.api.QApiInfo.apiInfo;
 
 
 @RequiredArgsConstructor
