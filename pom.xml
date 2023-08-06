@@ -63,6 +63,12 @@
             <artifactId>spring-kafka</artifactId>
             <version>3.0.4</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>8.5.13</version>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -73,12 +79,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <version>3.0.4</version>
             <scope>compile</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/io.minio/minio -->
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.1</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
         <dependency>

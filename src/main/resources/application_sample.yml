@@ -38,11 +38,6 @@ spring:
           descriptor:
             sql: trace
 
-minio:
-  url: http://${MINIO_IP}:${MINIO_PORT}
-  access_key: ${MINIO_ACCESS_KEY}
-  secret_key: ${MINIO_SECRET_KEY}
-  bucket: ${BUCKET_NAME}
 
 server:
   port: 20000
